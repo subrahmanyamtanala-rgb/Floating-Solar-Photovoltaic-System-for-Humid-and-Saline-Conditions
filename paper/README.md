@@ -17,7 +17,8 @@ cd paper && latexmk -pdf main.tex      # needs TeX Live with IEEEtran, siunitx, 
 |---|---|
 | `main.tex` | Manuscript |
 | `references.bib` | Bibliography (IEEEtran.bst) |
-| `response_to_reviewers.tex` | Point-by-point reply to the review (uses the same generated numbers) |
+| `response_to_reviewers_r2.tex` | Point-by-point reply to the second review (uses the same generated numbers) |
+| `response_to_reviewers_r1.pdf` | Reply to the first review, frozen as submitted |
 | `make_paper_assets.py` | Builds `figures/*.pdf`, `generated/*.tex` (numbers and table rows), the Monte Carlo, the threshold and mitigation studies, and `generated/parameters.json` |
 
 Check before submission: the author list and affiliation, the target journal in `\markboth`, the biography, and the

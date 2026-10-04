@@ -200,3 +200,21 @@ def weather_check(seeds=range(1, 21)) -> pd.DataFrame:
             "sim_annual": float(s.sum() if col == "rain_mm" else s.mean()),
         })
     return pd.DataFrame(out)
+
+
+# --------------------------------------------------------------------------- finance
+def finance_sensitivity(weather, discount=(0.06, 0.09, 0.12), escalation=(0.02, 0.05, 0.07)) -> pd.DataFrame:
+    """One-way LCOE sensitivity to the discount rate and the O&M escalation."""
+    base = default_scenarios()
+    res = {s.key: run_scenario(weather, s) for s in base}
+    rows = []
+    for name, values, field in (("discount", discount, "discount_rate"), ("escalation", escalation, "opex_escalation")):
+        for val in values:
+            row = {"param": name, "value": val}
+            for s in base:
+                e = replace(s.economics, **{field: val})
+                row[s.key] = lcoe(res[s.key].lifetime_kwh, s.system.dc_kwp, e)
+            row["fresh_minus_land"] = row["fpv_fresh"] - row["land"]
+            row["saline_minus_land"] = row["fpv_saline"] - row["land"]
+            rows.append(row)
+    return pd.DataFrame(rows)

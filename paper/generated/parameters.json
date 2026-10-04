@@ -471,185 +471,227 @@
     "parameters": [
       {
         "name": "th_ref",
-        "label": "Peck reference rate $R_{TH}^{ref}$",
+        "label": "Peck reference rate $R_{TH}^{ref}$ (\\%/yr)",
         "low": 0.06,
         "high": 0.14,
-        "log": false
+        "log": false,
+        "basis": "Calibration constant; land total $\\approx$0.9--1\\%/yr~\\cite{dubey2014}; $\\pm$40\\%"
       },
       {
         "name": "pid_ref",
-        "label": "PID reference rate $R_{PID}^{ref}$",
+        "label": "PID reference rate $R_{PID}^{ref}$ (\\%/yr)",
         "low": 0.03,
         "high": 0.09,
-        "log": false
+        "log": false,
+        "basis": "Calibration constant; $\\pm$50\\%"
       },
       {
         "name": "corr_ref",
-        "label": "Corrosion reference rate $R_C^{ref}$",
+        "label": "Corrosion reference rate $R_C^{ref}$ (\\%/yr)",
         "low": 0.05,
         "high": 0.15,
-        "log": false
+        "log": false,
+        "basis": "Calibration constant; $\\pm$50\\%"
       },
       {
         "name": "dew_loss",
         "label": "Dew optical loss",
         "low": 0.0,
         "high": 0.06,
-        "log": false
+        "log": false,
+        "basis": "Assumption; effect shown negligible (Sec.~IV-C)"
       },
       {
         "name": "k_dust",
-        "label": "Dust loss coefficient $k_d$",
+        "label": "Dust loss coefficient $k_d$ (m$^2$/g)",
         "low": 0.025,
         "high": 0.045,
-        "log": false
+        "log": false,
+        "basis": "Order of magnitude of dust-soiling studies~\\cite{sarver2013}"
       },
       {
         "name": "k_salt",
-        "label": "Salt loss coefficient $k_s$",
+        "label": "Salt loss coefficient $k_s$ (m$^2$/g)",
         "low": 0.03,
         "high": 0.09,
-        "log": false
+        "log": false,
+        "basis": "Assumption; no measured salt-crust transmittance"
       },
       {
         "name": "cementation",
-        "label": "Deliquescence cementation",
+        "label": "Deliquescence cementation factor",
         "low": 0.25,
         "high": 0.75,
-        "log": false
+        "log": false,
+        "basis": "Assumption; salt crusts observed on coastal FPV~\\cite{ahmad2026}"
       },
       {
         "name": "u0_land",
-        "label": "Land $U_0$",
+        "label": "Land $U_0$ (W/m$^2$K)",
         "low": 22.0,
         "high": 29.0,
-        "log": false
+        "log": false,
+        "basis": "Around open-rack Faiman defaults~\\cite{faiman2008}"
       },
       {
         "name": "u1_land",
-        "label": "Land $U_1$",
+        "label": "Land $U_1$ (W\\,s/m$^3$K)",
         "low": 4.5,
         "high": 8.0,
-        "log": false
+        "log": false,
+        "basis": "Around open-rack Faiman defaults~\\cite{faiman2008}"
       },
       {
         "name": "dust_land",
-        "label": "Land dust deposition",
+        "label": "Land dust deposition (multiplier)",
         "low": 0.5,
         "high": 2.0,
-        "log": true
+        "log": true,
+        "basis": "Assumption; no site measurement"
       },
       {
         "name": "cl_land",
-        "label": "Land chloride deposition",
+        "label": "Land chloride deposition (multiplier)",
         "low": 0.5,
         "high": 2.0,
-        "log": true
+        "log": true,
+        "basis": "15--60 mg/m$^2$/day, ISO~9223 class S1~\\cite{iso9223}"
       },
       {
         "name": "u0_fpv",
-        "label": "FPV $U_0$",
+        "label": "FPV $U_0$ (W/m$^2$K)",
         "low": 22.0,
         "high": 45.0,
-        "log": false
+        "log": false,
+        "basis": "Measured FPV values~\\cite{nysted2024,wu2024,dorenkamper2021,lindholm2021}"
       },
       {
         "name": "u1_fpv",
-        "label": "FPV $U_1$",
+        "label": "FPV $U_1$ (W\\,s/m$^3$K)",
         "low": 2.5,
         "high": 10.0,
-        "log": false
+        "log": false,
+        "basis": "Measured wind terms~\\cite{dorenkamper2024,nysted2024}"
       },
       {
         "name": "wind_fpv",
-        "label": "Wind factor $k_v$",
+        "label": "Over-water wind factor $k_v$",
         "low": 1.0,
         "high": 1.35,
-        "log": false
+        "log": false,
+        "basis": "Assumption (lower surface roughness)"
       },
       {
         "name": "motion",
         "label": "Wave-motion mismatch",
         "low": 0.003,
         "high": 0.015,
-        "log": false
+        "log": false,
+        "basis": "Assumption"
       },
       {
         "name": "alpha_fresh",
-        "label": "Air-water coupling $\\alpha$ (fresh)",
+        "label": "Air--water coupling $\\alpha$ (fresh)",
         "low": 0.1,
         "high": 0.4,
-        "log": false
+        "log": false,
+        "basis": "Assumption"
       },
       {
         "name": "dtd_fresh",
-        "label": "Dew-point rise $\\Delta T_d$ (fresh)",
+        "label": "Dew-point rise $\\Delta T_d$ (fresh, K)",
         "low": 0.5,
         "high": 1.5,
-        "log": false
+        "log": false,
+        "basis": "Assumption; threshold analysis in Sec.~IV-F"
       },
       {
         "name": "alpha_saline",
-        "label": "Air-water coupling $\\alpha$ (saline)",
+        "label": "Air--water coupling $\\alpha$ (saline)",
         "low": 0.15,
         "high": 0.45,
-        "log": false
+        "log": false,
+        "basis": "Assumption"
       },
       {
         "name": "dtd_saline",
-        "label": "Dew-point rise $\\Delta T_d$ (saline)",
+        "label": "Dew-point rise $\\Delta T_d$ (saline, K)",
         "low": 1.0,
         "high": 2.0,
-        "log": false
+        "log": false,
+        "basis": "Assumption"
       },
       {
         "name": "salt_saline",
-        "label": "Saline salt deposition",
+        "label": "Saline salt deposition (multiplier)",
         "low": 0.5,
         "high": 2.0,
-        "log": true
+        "log": true,
+        "basis": "Assumption; threshold analysis in Sec.~IV-F"
       },
       {
         "name": "cl_saline",
-        "label": "Saline chloride deposition",
+        "label": "Saline chloride deposition (multiplier)",
         "low": 0.5,
         "high": 2.0,
-        "log": true
+        "log": true,
+        "basis": "90--360 mg/m$^2$/day, ISO~9223 classes S2--S3~\\cite{iso9223}"
       },
       {
         "name": "mu_pid",
         "label": "PID mitigation $\\mu_{PID}$",
         "low": 0.5,
         "high": 0.95,
-        "log": false
+        "log": false,
+        "basis": "Assumption (Table~IV); not implied by IEC~TS~62804-1"
       },
       {
         "name": "mu_salt",
         "label": "Salt-mist mitigation $\\mu_C$",
         "low": 0.2,
         "high": 0.7,
-        "log": false
+        "log": false,
+        "basis": "Assumption (Table~IV); not implied by IEC~61701"
       },
       {
         "name": "capex_land",
         "label": "Land CAPEX (INR/Wp)",
         "low": 30.0,
         "high": 40.0,
-        "log": false
+        "log": false,
+        "basis": "Illustrative Indian-market range"
       },
       {
         "name": "capex_fresh",
         "label": "FPV fresh CAPEX (INR/Wp)",
         "low": 38.0,
         "high": 52.0,
-        "log": false
+        "log": false,
+        "basis": "Illustrative Indian-market range"
       },
       {
         "name": "capex_saline",
         "label": "FPV saline CAPEX (INR/Wp)",
         "low": 44.0,
         "high": 60.0,
-        "log": false
+        "log": false,
+        "basis": "Illustrative Indian-market range"
+      },
+      {
+        "name": "discount",
+        "label": "Discount rate",
+        "low": 0.06,
+        "high": 0.12,
+        "log": false,
+        "basis": "Typical range for utility-scale PV finance"
+      },
+      {
+        "name": "escalation",
+        "label": "O\\&M escalation",
+        "low": 0.02,
+        "high": 0.07,
+        "log": false,
+        "basis": "Assumption"
       }
     ]
   }

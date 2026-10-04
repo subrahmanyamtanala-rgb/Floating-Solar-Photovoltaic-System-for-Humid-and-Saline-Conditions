@@ -21,7 +21,9 @@ The study looks at how water cooling, high humidity and sea salt act together on
 The full generated report, with tables and figures, is in **[`results/REPORT.md`](results/REPORT.md)**.
 
 An IEEE Transactions-format manuscript based on these results is in **[`paper/main.pdf`](paper/main.pdf)**, revised
-after peer review; the point-by-point reply is in [`paper/response_to_reviewers.pdf`](paper/response_to_reviewers.pdf).
+after two rounds of peer review; the point-by-point replies are in
+[`paper/response_to_reviewers_r1.pdf`](paper/response_to_reviewers_r1.pdf) and
+[`paper/response_to_reviewers_r2.pdf`](paper/response_to_reviewers_r2.pdf).
 See [`paper/README.md`](paper/README.md) to rebuild them.
 
 ## Headline results (synthetic Visakhapatnam year, seed 42)
@@ -35,13 +37,13 @@ See [`paper/README.md`](paper/README.md) to rebuild them.
 | Degradation with PID-resistant + salt-mist-hardened modules (%/yr) | 0.70 | 0.68 | 0.83 |
 | 25-year energy (MWh per MWp) | 36 233 | **37 004** | 34 677 |
 
-These are model predictions under assumed baseline parameters. A 1,000-sample Monte Carlo over 26 uncertain
-parameters gives the 25-year energy difference relative to land PV:
+These are model predictions under assumed baseline parameters. A 1,000-sample Monte Carlo over 28 uncertain
+parameters (including financing) gives the 25-year energy difference relative to land PV:
 
 | | Median | 95 % interval | P(better than land) |
 |---|---|---|---|
-| FPV freshwater | +1.3 % | −3.6 % to +6.4 % | 73 % |
-| FPV saline | −4.9 % | −11.2 % to +0.7 % | 4 % |
+| FPV freshwater | +1.5 % | −3.6 % to +6.3 % | 75 % |
+| FPV saline | −5.1 % | −11.5 % to +0.7 % | 4 % |
 
 Floating PV runs cooler and, at baseline, yields more. Over the plant's life, though, the more humid air over the
 water and, at saline sites, chloride corrosion and salt-assisted PID take back part or all of that gain. The saline
@@ -127,8 +129,8 @@ weather ──► microclimate over water ──► sun position ──► Erbs 
 | `economics.py` | LCOE, evaporation savings |
 | `simulation.py` | Hourly chain, loss accounting, KPIs |
 | `sensitivity.py` | Dew-point rise × salinity sweep |
-| `uncertainty.py` | Monte Carlo over 26 parameters, rank correlations, one-at-a-time swings |
-| `studies.py` | Salt/chloride/humidity thresholds, dew-loss sensitivity, mitigation matrix, LCOE break-even, weather check |
+| `uncertainty.py` | Monte Carlo over 28 parameters (with sources for each range), rank correlations, one-at-a-time swings |
+| `studies.py` | Salt/chloride/humidity thresholds, dew-loss sensitivity, mitigation matrix, LCOE break-even, financing sensitivity, weather check |
 | `plots.py`, `report.py`, `cli.py` | Figures, Markdown report, command line |
 
 ## Key parameters and sources

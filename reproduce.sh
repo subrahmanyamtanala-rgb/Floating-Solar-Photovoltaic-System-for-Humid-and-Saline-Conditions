@@ -10,5 +10,5 @@ python3 -m fpv_analysis --out results      # report, CSV tables, report figures
 python3 paper/make_paper_assets.py         # paper numbers, tables, figures, Monte Carlo
 cd paper
 latexmk -pdf -interaction=nonstopmode main.tex
-latexmk -pdf -interaction=nonstopmode response_to_reviewers.tex
-echo "Done: paper/main.pdf, paper/response_to_reviewers.pdf, results/REPORT.md"
+latexmk -pdf -interaction=nonstopmode response_to_reviewers_r2.tex   # round-1 letter is kept frozen as a PDF
+echo "Done: paper/main.pdf, paper/response_to_reviewers_r2.pdf, results/REPORT.md"

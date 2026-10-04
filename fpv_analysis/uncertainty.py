@@ -26,6 +26,7 @@ class Param:
     low: float
     high: float
     log: bool = False  # sample log-uniformly (for multiplicative factors)
+    basis: str = "Assumption"  # justification of the range (LaTeX, may contain \\cite)
 
     def sample(self, rng: np.random.Generator) -> float:
         if self.log:
@@ -40,38 +41,67 @@ class Param:
 # Ranges are deliberately wide; they bracket the baseline values in config.py.
 PARAMS = [
     # shared by all plants
-    Param("th_ref", "Peck reference rate $R_{TH}^{ref}$", 0.06, 0.14),
-    Param("pid_ref", "PID reference rate $R_{PID}^{ref}$", 0.03, 0.09),
-    Param("corr_ref", "Corrosion reference rate $R_C^{ref}$", 0.05, 0.15),
-    Param("dew_loss", "Dew optical loss", 0.0, 0.06),
-    Param("k_dust", "Dust loss coefficient $k_d$", 0.025, 0.045),
-    Param("k_salt", "Salt loss coefficient $k_s$", 0.03, 0.09),
-    Param("cementation", "Deliquescence cementation", 0.25, 0.75),
+    Param("th_ref", "Peck reference rate $R_{TH}^{ref}$ (\\%/yr)", 0.06, 0.14,
+          basis="Calibration constant; land total $\\approx$0.9--1\\%/yr~\\cite{dubey2014}; $\\pm$40\\%"),
+    Param("pid_ref", "PID reference rate $R_{PID}^{ref}$ (\\%/yr)", 0.03, 0.09,
+          basis="Calibration constant; $\\pm$50\\%"),
+    Param("corr_ref", "Corrosion reference rate $R_C^{ref}$ (\\%/yr)", 0.05, 0.15,
+          basis="Calibration constant; $\\pm$50\\%"),
+    Param("dew_loss", "Dew optical loss", 0.0, 0.06,
+          basis="Assumption; effect shown negligible (Sec.~IV-C)"),
+    Param("k_dust", "Dust loss coefficient $k_d$ (m$^2$/g)", 0.025, 0.045,
+          basis="Order of magnitude of dust-soiling studies~\\cite{sarver2013}"),
+    Param("k_salt", "Salt loss coefficient $k_s$ (m$^2$/g)", 0.03, 0.09,
+          basis="Assumption; no measured salt-crust transmittance"),
+    Param("cementation", "Deliquescence cementation factor", 0.25, 0.75,
+          basis="Assumption; salt crusts observed on coastal FPV~\\cite{ahmad2026}"),
     # land plant
-    Param("u0_land", "Land $U_0$", 22.0, 29.0),
-    Param("u1_land", "Land $U_1$", 4.5, 8.0),
-    Param("dust_land", "Land dust deposition", 0.5, 2.0, log=True),
-    Param("cl_land", "Land chloride deposition", 0.5, 2.0, log=True),
+    Param("u0_land", "Land $U_0$ (W/m$^2$K)", 22.0, 29.0,
+          basis="Around open-rack Faiman defaults~\\cite{faiman2008}"),
+    Param("u1_land", "Land $U_1$ (W\\,s/m$^3$K)", 4.5, 8.0,
+          basis="Around open-rack Faiman defaults~\\cite{faiman2008}"),
+    Param("dust_land", "Land dust deposition (multiplier)", 0.5, 2.0, log=True,
+          basis="Assumption; no site measurement"),
+    Param("cl_land", "Land chloride deposition (multiplier)", 0.5, 2.0, log=True,
+          basis="15--60 mg/m$^2$/day, ISO~9223 class S1~\\cite{iso9223}"),
     # floating plants
     # wide enough to include FPV designs with no cooling advantage over open racks
-    # (U-values of 22-34 W/m2K and wind terms of 2.7-5 W s/m3K have been measured)
-    Param("u0_fpv", "FPV $U_0$", 22.0, 45.0),
-    Param("u1_fpv", "FPV $U_1$", 2.5, 10.0),
-    Param("wind_fpv", "Wind factor $k_v$", 1.0, 1.35),
-    Param("motion", "Wave-motion mismatch", 0.003, 0.015),
-    Param("alpha_fresh", "Air-water coupling $\\alpha$ (fresh)", 0.10, 0.40),
-    Param("dtd_fresh", "Dew-point rise $\\Delta T_d$ (fresh)", 0.5, 1.5),
-    Param("alpha_saline", "Air-water coupling $\\alpha$ (saline)", 0.15, 0.45),
-    Param("dtd_saline", "Dew-point rise $\\Delta T_d$ (saline)", 1.0, 2.0),
-    Param("salt_saline", "Saline salt deposition", 0.5, 2.0, log=True),
-    Param("cl_saline", "Saline chloride deposition", 0.5, 2.0, log=True),
+    Param("u0_fpv", "FPV $U_0$ (W/m$^2$K)", 22.0, 45.0,
+          basis="Measured FPV values~\\cite{nysted2024,wu2024,dorenkamper2021,lindholm2021}"),
+    Param("u1_fpv", "FPV $U_1$ (W\\,s/m$^3$K)", 2.5, 10.0,
+          basis="Measured wind terms~\\cite{dorenkamper2024,nysted2024}"),
+    Param("wind_fpv", "Over-water wind factor $k_v$", 1.0, 1.35,
+          basis="Assumption (lower surface roughness)"),
+    Param("motion", "Wave-motion mismatch", 0.003, 0.015,
+          basis="Assumption"),
+    Param("alpha_fresh", "Air--water coupling $\\alpha$ (fresh)", 0.10, 0.40,
+          basis="Assumption"),
+    Param("dtd_fresh", "Dew-point rise $\\Delta T_d$ (fresh, K)", 0.5, 1.5,
+          basis="Assumption; threshold analysis in Sec.~IV-F"),
+    Param("alpha_saline", "Air--water coupling $\\alpha$ (saline)", 0.15, 0.45,
+          basis="Assumption"),
+    Param("dtd_saline", "Dew-point rise $\\Delta T_d$ (saline, K)", 1.0, 2.0,
+          basis="Assumption"),
+    Param("salt_saline", "Saline salt deposition (multiplier)", 0.5, 2.0, log=True,
+          basis="Assumption; threshold analysis in Sec.~IV-F"),
+    Param("cl_saline", "Saline chloride deposition (multiplier)", 0.5, 2.0, log=True,
+          basis="90--360 mg/m$^2$/day, ISO~9223 classes S2--S3~\\cite{iso9223}"),
     # mitigation (assumed reduction factors)
-    Param("mu_pid", "PID mitigation $\\mu_{PID}$", 0.5, 0.95),
-    Param("mu_salt", "Salt-mist mitigation $\\mu_C$", 0.2, 0.7),
-    # costs
-    Param("capex_land", "Land CAPEX (INR/Wp)", 30.0, 40.0),
-    Param("capex_fresh", "FPV fresh CAPEX (INR/Wp)", 38.0, 52.0),
-    Param("capex_saline", "FPV saline CAPEX (INR/Wp)", 44.0, 60.0),
+    Param("mu_pid", "PID mitigation $\\mu_{PID}$", 0.5, 0.95,
+          basis="Assumption (Table~IV); not implied by IEC~TS~62804-1"),
+    Param("mu_salt", "Salt-mist mitigation $\\mu_C$", 0.2, 0.7,
+          basis="Assumption (Table~IV); not implied by IEC~61701"),
+    # costs and finance
+    Param("capex_land", "Land CAPEX (INR/Wp)", 30.0, 40.0,
+          basis="Illustrative Indian-market range"),
+    Param("capex_fresh", "FPV fresh CAPEX (INR/Wp)", 38.0, 52.0,
+          basis="Illustrative Indian-market range"),
+    Param("capex_saline", "FPV saline CAPEX (INR/Wp)", 44.0, 60.0,
+          basis="Illustrative Indian-market range"),
+    Param("discount", "Discount rate", 0.06, 0.12,
+          basis="Typical range for utility-scale PV finance"),
+    Param("escalation", "O\\&M escalation", 0.02, 0.07,
+          basis="Assumption"),
 ]
 PARAM_BY_NAME = {p.name: p for p in PARAMS}
 
@@ -106,6 +136,8 @@ def baseline_values() -> dict:
         "capex_land": land.economics.capex_per_wp,
         "capex_fresh": fresh.economics.capex_per_wp,
         "capex_saline": saline.economics.capex_per_wp,
+        "discount": land.economics.discount_rate,
+        "escalation": land.economics.opex_escalation,
     }
 
 
@@ -117,6 +149,7 @@ def build_scenarios(v: dict) -> dict[str, Scenario]:
     def common(s: Scenario) -> Scenario:
         return replace(
             s,
+            economics=replace(s.economics, discount_rate=v["discount"], opex_escalation=v["escalation"]),
             system=replace(s.system, dew_optical_loss=v["dew_loss"]),
             soiling=replace(s.soiling, k_dust=v["k_dust"], k_salt=v["k_salt"], cementation=v["cementation"]),
             degradation=replace(
