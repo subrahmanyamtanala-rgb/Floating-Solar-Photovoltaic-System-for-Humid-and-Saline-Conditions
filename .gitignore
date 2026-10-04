@@ -3,3 +3,11 @@ __pycache__/
 .pytest_cache/
 .venv/
 *.egg-info/
+paper/*.aux
+paper/*.log
+paper/*.out
+paper/*.bbl
+paper/*.blg
+paper/*.fls
+paper/*.fdb_latexmk
+paper/*.synctex.gz

@@ -19,6 +19,9 @@ The study looks at how water cooling, high humidity and sea salt act together on
 
 The full generated report, with tables and figures, is in **[`results/REPORT.md`](results/REPORT.md)**.
 
+An IEEE Transactions-format manuscript based on these results is in **[`paper/main.pdf`](paper/main.pdf)**. Its
+LaTeX source is [`paper/main.tex`](paper/main.tex); see [`paper/README.md`](paper/README.md) to rebuild it.
+
 ## Headline results (synthetic Visakhapatnam year, seed 42)
 
 | | Land PV | FPV freshwater | FPV saline |
