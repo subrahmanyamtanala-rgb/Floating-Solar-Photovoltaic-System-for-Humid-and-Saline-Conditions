@@ -177,3 +177,12 @@ def test_humidity_threshold_exists(weather):
     hum = studies.humidity_sweep(weather)
     thr = studies.thresholds(studies.chloride_sweep(weather), studies.salt_sweep(weather), hum)
     assert 0.5 < thr["dtd_star"] < 6.0
+
+
+def test_convergence_uses_nested_prefixes(weather):
+    from fpv_analysis import uncertainty
+
+    mc = uncertainty.monte_carlo(weather, n=8, seed=3)
+    conv = uncertainty.convergence(mc, ["fpv_saline:d_lifetime_energy_mwh_pct"], sizes=(4, 8), n_boot=20)
+    assert list(conv["n"]) == [4, 8]
+    assert conv.loc[conv.n == 8, "median"].iloc[0] == pytest.approx(mc["fpv_saline:d_lifetime_energy_mwh_pct"].median())

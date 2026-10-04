@@ -467,6 +467,7 @@
   },
   "monte_carlo": {
     "n": 1000,
+    "n_convergence": 5000,
     "seed": 2024,
     "parameters": [
       {
@@ -499,7 +500,7 @@
         "low": 0.0,
         "high": 0.06,
         "log": false,
-        "basis": "Assumption; effect shown negligible (Sec.~IV-C)"
+        "basis": "Assumption; effect shown negligible (Sec.~\\ref{sec:dew})"
       },
       {
         "name": "k_dust",
@@ -603,7 +604,7 @@
         "low": 0.5,
         "high": 1.5,
         "log": false,
-        "basis": "Assumption; threshold analysis in Sec.~IV-F"
+        "basis": "Assumption; threshold analysis in Sec.~\\ref{sec:thresholds}"
       },
       {
         "name": "alpha_saline",
@@ -627,7 +628,7 @@
         "low": 0.5,
         "high": 2.0,
         "log": true,
-        "basis": "Assumption; threshold analysis in Sec.~IV-F"
+        "basis": "Assumption; threshold analysis in Sec.~\\ref{sec:thresholds}"
       },
       {
         "name": "cl_saline",
@@ -643,7 +644,7 @@
         "low": 0.5,
         "high": 0.95,
         "log": false,
-        "basis": "Assumption (Table~IV); not implied by IEC~TS~62804-1"
+        "basis": "Assumption (Table~\\ref{tab:mitstd}); not implied by IEC~TS~62804-1"
       },
       {
         "name": "mu_salt",
@@ -651,7 +652,7 @@
         "low": 0.2,
         "high": 0.7,
         "log": false,
-        "basis": "Assumption (Table~IV); not implied by IEC~61701"
+        "basis": "Assumption (Table~\\ref{tab:mitstd}); not implied by IEC~61701"
       },
       {
         "name": "capex_land",

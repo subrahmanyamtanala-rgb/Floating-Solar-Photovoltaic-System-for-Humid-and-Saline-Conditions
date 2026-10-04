@@ -1,0 +1,163 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,margin=2.2cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage[per-mode=symbol]{siunitx}
+\usepackage{enumitem}
+\usepackage{xcolor}
+\usepackage[hidelinks]{hyperref}
+\input{generated/numbers.tex}
+\input{generated/numbers_review.tex}
+\input{generated/convergence.tex}
+\newcommand{\TOWsym}{\mathit{TOW}}
+\sloppy
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt}
+\newcounter{cmt}
+\newenvironment{comment}[1]{\refstepcounter{cmt}\par\medskip\noindent\textbf{Comment \thecmt{} (#1).}\itshape\ }{\par}
+\newenvironment{response}{\par\noindent\textbf{Response.}\ }{\par}
+\newcommand{\change}[1]{\par\noindent\textcolor{blue!50!black}{\textbf{Changes:} #1}\par}
+
+\begin{document}
+\begin{center}
+{\Large\bfseries Response to Reviewers --- Third Round}\\[4pt]
+Manuscript: ``Lifetime Performance and Degradation of Floating Photovoltaic Systems Under Humid and Saline Conditions''
+\end{center}
+
+I thank the reviewer for the third assessment. This round implements the six priority revisions and the other
+suggestions. None of the reported results changes: the convergence analysis reuses exactly the \NMC{} samples reported
+in the previous version as the first part of a \NMCConv-sample run.
+
+\section*{Priority 1: Monte Carlo convergence (\S21)}
+\begin{comment}{convergence}
+Show that 1,000 samples are sufficient, e.g.\ with 250--5,000 samples.
+\end{comment}
+\begin{response}
+Done. A \NMCConv-sample Monte Carlo was run with the same seed. Its first \NMC{} samples are identical to the reported
+analysis, so the statistics can be compared on nested subsets of 250, 500, 1,000, 2,000 and 5,000 samples, with bootstrap
+standard errors. From \NMC{} to \NMCConv{} samples, no median or 95\% bound of the key outputs moves by more than
+\ConvMaxShift~percentage point. The bootstrap standard errors at \NMC{} samples are at most \ConvMaxSE~percentage point,
+which is small compared with the interval widths of 6--12 points.
+\end{response}
+\change{Section~III-I (method); Section~IV-H, Table~XII and Fig.~13 (new); \texttt{uncertainty.convergence()} and a new
+unit test. The Monte Carlo now runs in parallel and is bit-identical to the serial run.}
+
+\section*{Priority 2: Assumptions versus empirical evidence (\S6, \S7, \S19)}
+\begin{comment}{model-evidence table}
+Classify components into established models, literature-informed parameterizations and new assumptions.
+\end{comment}
+\begin{response}
+Added as Table~III, introduced at the start of Section~III. It has three categories:
+\begin{itemize}[nosep]
+\item[A] Established models used as published: Spencer, Haurwitz, Erbs, Hay--Davies, ASHRAE IAM, Kasten--Young, Gueymard,
+the First Solar spectral factor, Magnus, Faiman, PVWatts, the Arrhenius/Peck form, the ISO~9223 concepts and LCOE.
+\item[B] Literature-informed parameter values: heat-loss coefficients, Peck $E_a$ and $n$, PID activation energy, NaCl
+deliquescence RH, ISO~9223 chloride classes, the dust coefficient, and reference rates calibrated to the magnitude of
+field surveys.
+\item[C] New modelling assumptions: the over-water microclimate, the surface-RH/encapsulant-lag formulation, the dew
+criterion and loss, salt deposition and cementation, the salt-assisted leakage function, the corrosion scaling, additive
+constant-rate degradation, the mitigation factors, and all deposition rates and costs.
+\end{itemize}
+The text notes that the contribution lies in the coupling and in category~C, which is also where field calibration is
+most needed.
+\end{response}
+
+\begin{comment}{PID submodel}
+State that the PID submodel is a physically motivated scenario model, not an experimentally calibrated predictive model.
+\end{comment}
+\begin{response}
+The sentence has been added to Section~III-F in the reviewer's words. For readability, Eq.~(13) now defines the
+shifted threshold $\mathit{RH}_{50}^{*}=\mathit{RH}_{50}-\Delta_s s$ and the width $w$ explicitly.
+\end{response}
+
+\begin{comment}{corrosion positioning}
+Position the corrosion term carefully as a calibration-based representation.
+\end{comment}
+\begin{response}
+Section~III-F now states that Eq.~(14) ``borrows the ISO~9223 variables but not a fitted damage function''. It adds that
+the linear time-of-wetness and square-root chloride scaling make it ``a calibrated scenario representation of corrosion,
+not a validated corrosion-damage model''.
+\end{response}
+
+\section*{Priority 3: Validation positioning (\S3, \S10, \S11, \S17)}
+\begin{comment}{wording}
+Use ``baseline modelled cooling''; call Table~III a ``synthetic-weather consistency check''; keep the scenario framing;
+emphasize the validation protocol.
+\end{comment}
+\begin{response}
+All are done:
+\begin{itemize}[nosep]
+\item Section~IV-A now reads ``The baseline modelled cooling is \dTdayF~K in daytime \ldots{} This is a consequence of
+the assumed FPV heat-loss coefficients, not a measured cooling effect.'' The Discussion and conclusion use the same
+term.
+\item The weather table (now Table~IV) is titled ``Synthetic-Weather Consistency Check''.
+\item The field-validation protocol is moved forward to Section~V-C, directly after the decision-relevant drivers it is
+designed to measure. It is also listed as a contribution in Section~I.
+\end{itemize}
+\end{response}
+
+\section*{Priority 4: Constant-rate lifetime extrapolation (\S12)}
+\begin{comment}{constant rate}
+Add a sentence immediately before Eq.~(15) on equivalent constant-rate projections.
+\end{comment}
+\begin{response}
+Added immediately before Eq.~(15): ``Consequently, the lifetime estimates should be interpreted as equivalent
+constant-rate projections rather than predictions of the exact annual degradation trajectory.''
+\end{response}
+
+\section*{Priority 5: Baseline versus Monte Carlo labelling (\S18)}
+\begin{comment}{labelling}
+Add the word ``baseline'' every time the $+2.1$\% and $-4.3$\% values appear.
+\end{comment}
+\begin{response}
+Done. Every occurrence in the abstract, Sections~IV-B, IV-E and IV-H, and the conclusion is now labelled ``baseline''.
+The Monte Carlo medians ($+$\MCLifeMedF\% and \MCLifeMedS\%) are always reported with their 95\% intervals.
+\end{response}
+
+\section*{Priority 6: Equation and typesetting audit (\S20)}
+\begin{comment}{typesetting}
+Check Eqs.~(9)--(14) and all subscripts, superscripts and units in the final PDF.
+\end{comment}
+\begin{response}
+The compiled PDF was inspected at high resolution. Equations~(9)--(14) render correctly with IEEEtran, so the compression
+the reviewer saw is most likely a PDF-to-text extraction artefact. Three equations were nevertheless restructured for
+readability:
+\begin{itemize}[nosep]
+\item Eq.~(13) is split over two lines with a named shifted threshold.
+\item Eq.~(15) is written with a single sum $\sum(O_y-B_y)(1+r)^{-y}$, so that its equation number stays on the same
+line.
+\item The ambient-RH condition in the definition of $\TOWsym$ is stated explicitly.
+\end{itemize}
+The final PDF compiles without overfull boxes, and $T_a'$, $T_m$ and the RH subscripts are used consistently.
+\end{response}
+
+\section*{Other comments}
+\begin{comment}{\S14, threshold wording}
+Present $\Delta T_d^*\approx2.7$~K as a model-predicted site-screening criterion, not a universal threshold.
+\end{comment}
+\begin{response}
+Section~IV-F now says it ``is a threshold predicted by this model under the stated assumptions, not a universal physical
+constant; it can nevertheless serve as a site-screening criterion''. The abstract, Section~V-B and the conclusion say
+``in this model''.
+\end{response}
+
+\begin{comment}{\S22, regional economics}
+Phrase economic conclusions as ``under the assumed Indian-market cost and financing conditions''.
+\end{comment}
+\begin{response}
+Done in Section~IV-I (opening sentence and the justification sentence).
+\end{response}
+
+\begin{comment}{\S4, \S13, preserve wording}
+Retain the ``model-based scenario predictions'' and ``scenario-based mitigation benefits'' language.
+\end{comment}
+\begin{response}
+Retained unchanged, and not strengthened.
+\end{response}
+
+\section*{Remaining limitation}
+Measured FPV and site-weather data are still unavailable, so the manuscript remains a physically informed scenario and
+uncertainty framework. Its evidential basis is now classified explicitly (Table~III), and a field-validation protocol is
+proposed (Table~XIV).
+
+\end{document}

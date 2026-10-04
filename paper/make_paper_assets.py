@@ -36,6 +36,9 @@ COL = 3.5  # IEEE single-column width, inches
 DCOL = 7.16  # IEEE double-column width, inches
 N_SEEDS = 20
 N_MC = 1000
+N_MC_CONV = 5000
+CONV_COLS = ["fpv_fresh:d_lifetime_energy_mwh_pct", "fpv_saline:d_lifetime_energy_mwh_pct",
+             "fpv_saline_mitigated:d_lifetime_energy_mwh_pct", "fpv_fresh:d_specific_yield_kwh_kwp_pct"]
 MC_SEED = 2024
 
 NAMES = {"land": "Land PV", "fpv_fresh": "FPV freshwater", "fpv_saline": "FPV saline"}
@@ -548,6 +551,51 @@ def write_review_assets(weather, mc, rc, oat, salt, cl, hum, thr, dew, mit, be, 
     (GEN / "numbers_review.tex").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
+def fig_convergence(conv):
+    fig, ax = plt.subplots(figsize=(COL, 2.0))
+    for i, (col, name) in enumerate([("fpv_fresh:d_lifetime_energy_mwh_pct", "FPV fresh"),
+                                     ("fpv_saline:d_lifetime_energy_mwh_pct", "FPV saline")]):
+        d = conv[conv.output == col]
+        c = SERIES[i + 1]
+        ax.errorbar(d["n"], d["median"], yerr=1.96 * d["se_median"], color=c, marker="o", markersize=3,
+                    capsize=2, linewidth=1.2, label=f"{name} median")
+        ax.plot(d["n"], d["p2.5"], color=c, linestyle="--", linewidth=0.9)
+        ax.plot(d["n"], d["p97.5"], color=c, linestyle="--", linewidth=0.9)
+    ax.plot([], [], color=NEUTRAL, linestyle="--", linewidth=0.9, label="2.5/97.5 percentiles")
+    ax.axhline(0, color=INK_2, linewidth=0.6)
+    ax.axvline(N_MC, color=NEUTRAL, linewidth=0.6, linestyle=":")
+    ax.set_xscale("log")
+    ax.minorticks_off()
+    ax.set_xticks([250, 500, 1000, 2000, 5000], ["250", "500", "1000", "2000", "5000"])
+    ax.set_xlabel("Number of Monte Carlo samples")
+    ax.set_ylabel("25-yr energy vs land (%)")
+    ax.legend(ncols=3, loc="lower center", bbox_to_anchor=(0.5, 1.0), fontsize=6)
+    save(fig, "convergence.pdf")
+
+
+def write_convergence(conv):
+    lines = ["% Auto-generated: Monte Carlo convergence"]
+    names = {"fpv_fresh:d_lifetime_energy_mwh_pct": "$\\Delta E_{25}$, fresh",
+             "fpv_saline:d_lifetime_energy_mwh_pct": "$\\Delta E_{25}$, saline",
+             "fpv_saline_mitigated:d_lifetime_energy_mwh_pct": "$\\Delta E_{25}$, saline (M)",
+             "fpv_fresh:d_specific_yield_kwh_kwp_pct": "$\\Delta E_{1}$, fresh"}
+    rows = []
+    shifts = []
+    for col, name in names.items():
+        a = conv[(conv.output == col) & (conv.n == N_MC)].iloc[0]
+        b = conv[(conv.output == col) & (conv.n == N_MC_CONV)].iloc[0]
+        rows.append(f"{name} & {_fmt(a['median'], 2)} ({_fmt(a['se_median'], 2)}) & {_fmt(b['median'], 2)} "
+                    f"& [{_fmt(a['p2.5'], 2)}, {_fmt(a['p97.5'], 2)}] & [{_fmt(b['p2.5'], 2)}, {_fmt(b['p97.5'], 2)}] \\\\")
+        shifts += [abs(a[k] - b[k]) for k in ("median", "p2.5", "p97.5")]
+    lines.append("\\newcommand{\\TabConv}{%\n" + "\n".join(rows) + "}")
+    se = conv[conv.n == N_MC][["se_median", "se_p2.5", "se_p97.5"]].to_numpy().max()
+    lines.append(f"\\newcommand{{\\ConvMaxShift}}{{{max(shifts):.2f}}}")
+    lines.append(f"\\newcommand{{\\ConvMaxSE}}{{{se:.2f}}}")
+    lines.append(f"\\newcommand{{\\NMCConv}}{{{N_MC_CONV:,}}}".replace(",", "{,}"))
+    (GEN / "convergence.tex").write_text("\n".join(lines) + "\n", encoding="utf-8")
+
+
+
 def write_parameters_json():
     """Machine-readable record of every scenario parameter and the Monte Carlo ranges."""
     import json
@@ -558,7 +606,7 @@ def write_parameters_json():
         "weather": {"generator": "fpv_analysis.climate.synthetic_weather", "baseline_seed": 42,
                     "ensemble_seeds": list(range(1, N_SEEDS + 1))},
         "scenarios": {s.key: asdict(s) for s in base + [with_mitigation(s) for s in base]},
-        "monte_carlo": {"n": N_MC, "seed": MC_SEED,
+        "monte_carlo": {"n": N_MC, "n_convergence": N_MC_CONV, "seed": MC_SEED,
                         "parameters": [asdict(p) for p in uncertainty.PARAMS]},
     }
     (GEN / "parameters.json").write_text(json.dumps(data, indent=2), encoding="utf-8")
@@ -597,8 +645,14 @@ def main():
     write_numbers(res, grid, ens, weather)
 
     # ---- peer-review additions
-    mc = uncertainty.monte_carlo(weather, n=N_MC, seed=MC_SEED)
+    import os
+    mc_all = uncertainty.monte_carlo(weather, n=N_MC_CONV, seed=MC_SEED, workers=os.cpu_count() or 1)
+    mc = mc_all.iloc[:N_MC].reset_index(drop=True)  # identical to an N_MC run with the same seed
     mc.to_csv(GEN / "monte_carlo.csv", index=False, float_format="%.5g")
+    conv = uncertainty.convergence(mc_all, CONV_COLS)
+    conv.to_csv(GEN / "convergence.csv", index=False, float_format="%.5g")
+    fig_convergence(conv)
+    write_convergence(conv)
     rc = uncertainty.rank_correlation(mc, "fpv_saline:d_lifetime_energy_mwh_pct")
     oat = uncertainty.one_at_a_time(weather, "fpv_saline:d_lifetime_energy_mwh_pct")
     salt, cl, hum = studies.salt_sweep(weather), studies.chloride_sweep(weather), studies.humidity_sweep(weather)

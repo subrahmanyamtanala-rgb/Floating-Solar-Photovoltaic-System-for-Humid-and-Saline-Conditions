@@ -48,7 +48,7 @@ PARAMS = [
     Param("corr_ref", "Corrosion reference rate $R_C^{ref}$ (\\%/yr)", 0.05, 0.15,
           basis="Calibration constant; $\\pm$50\\%"),
     Param("dew_loss", "Dew optical loss", 0.0, 0.06,
-          basis="Assumption; effect shown negligible (Sec.~IV-C)"),
+          basis="Assumption; effect shown negligible (Sec.~\\ref{sec:dew})"),
     Param("k_dust", "Dust loss coefficient $k_d$ (m$^2$/g)", 0.025, 0.045,
           basis="Order of magnitude of dust-soiling studies~\\cite{sarver2013}"),
     Param("k_salt", "Salt loss coefficient $k_s$ (m$^2$/g)", 0.03, 0.09,
@@ -77,20 +77,20 @@ PARAMS = [
     Param("alpha_fresh", "Air--water coupling $\\alpha$ (fresh)", 0.10, 0.40,
           basis="Assumption"),
     Param("dtd_fresh", "Dew-point rise $\\Delta T_d$ (fresh, K)", 0.5, 1.5,
-          basis="Assumption; threshold analysis in Sec.~IV-F"),
+          basis="Assumption; threshold analysis in Sec.~\\ref{sec:thresholds}"),
     Param("alpha_saline", "Air--water coupling $\\alpha$ (saline)", 0.15, 0.45,
           basis="Assumption"),
     Param("dtd_saline", "Dew-point rise $\\Delta T_d$ (saline, K)", 1.0, 2.0,
           basis="Assumption"),
     Param("salt_saline", "Saline salt deposition (multiplier)", 0.5, 2.0, log=True,
-          basis="Assumption; threshold analysis in Sec.~IV-F"),
+          basis="Assumption; threshold analysis in Sec.~\\ref{sec:thresholds}"),
     Param("cl_saline", "Saline chloride deposition (multiplier)", 0.5, 2.0, log=True,
           basis="90--360 mg/m$^2$/day, ISO~9223 classes S2--S3~\\cite{iso9223}"),
     # mitigation (assumed reduction factors)
     Param("mu_pid", "PID mitigation $\\mu_{PID}$", 0.5, 0.95,
-          basis="Assumption (Table~IV); not implied by IEC~TS~62804-1"),
+          basis="Assumption (Table~\\ref{tab:mitstd}); not implied by IEC~TS~62804-1"),
     Param("mu_salt", "Salt-mist mitigation $\\mu_C$", 0.2, 0.7,
-          basis="Assumption (Table~IV); not implied by IEC~61701"),
+          basis="Assumption (Table~\\ref{tab:mitstd}); not implied by IEC~61701"),
     # costs and finance
     Param("capex_land", "Land CAPEX (INR/Wp)", 30.0, 40.0,
           basis="Illustrative Indian-market range"),
@@ -209,12 +209,52 @@ def evaluate(weather: pd.DataFrame, v: dict) -> dict:
     return out
 
 
-def monte_carlo(weather: pd.DataFrame, n: int = 1000, seed: int = 2024) -> pd.DataFrame:
+_WEATHER = None  # set in worker processes
+
+
+def _init_worker(weather):
+    global _WEATHER
+    _WEATHER = weather
+
+
+def _evaluate_sample(v):
+    return {**v, **evaluate(_WEATHER, v)}
+
+
+def draw_samples(n: int, seed: int) -> list[dict]:
+    """Parameter vectors in a fixed order, so the first k of n samples equal an n=k run."""
+    rng = np.random.default_rng(seed)
+    return [{p.name: p.sample(rng) for p in PARAMS} for _ in range(n)]
+
+
+def monte_carlo(weather: pd.DataFrame, n: int = 1000, seed: int = 2024, workers: int = 1) -> pd.DataFrame:
+    samples = draw_samples(n, seed)
+    if workers <= 1:
+        rows = [{**v, **evaluate(weather, v)} for v in samples]
+    else:
+        import multiprocessing as mp
+
+        with mp.get_context("fork").Pool(workers, initializer=_init_worker, initargs=(weather,)) as pool:
+            rows = pool.map(_evaluate_sample, samples, chunksize=max(1, n // (8 * workers)))
+    return pd.DataFrame(rows)
+
+
+def convergence(mc: pd.DataFrame, columns, sizes=(250, 500, 1000, 2000, 5000), n_boot: int = 500,
+                seed: int = 7) -> pd.DataFrame:
+    """Median and 95 % interval on nested prefixes of one Monte Carlo run, with bootstrap SEs."""
     rng = np.random.default_rng(seed)
     rows = []
-    for _ in range(n):
-        v = {p.name: p.sample(rng) for p in PARAMS}
-        rows.append({**v, **evaluate(weather, v)})
+    for n in sizes:
+        if n > len(mc):
+            continue
+        sub = mc.iloc[:n]
+        for col in columns:
+            x = sub[col].to_numpy()
+            q = np.percentile(x, [2.5, 50, 97.5])
+            boot = np.percentile(rng.choice(x, size=(n_boot, n), replace=True), [2.5, 50, 97.5], axis=1)
+            se = boot.std(axis=1, ddof=1)
+            rows.append({"n": n, "output": col, "p2.5": q[0], "median": q[1], "p97.5": q[2],
+                         "se_p2.5": se[0], "se_median": se[1], "se_p97.5": se[2], "p_positive": float((x > 0).mean())})
     return pd.DataFrame(rows)
 
 

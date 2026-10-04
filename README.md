@@ -21,9 +21,10 @@ The study looks at how water cooling, high humidity and sea salt act together on
 The full generated report, with tables and figures, is in **[`results/REPORT.md`](results/REPORT.md)**.
 
 An IEEE Transactions-format manuscript based on these results is in **[`paper/main.pdf`](paper/main.pdf)**, revised
-after two rounds of peer review; the point-by-point replies are in
-[`paper/response_to_reviewers_r1.pdf`](paper/response_to_reviewers_r1.pdf) and
-[`paper/response_to_reviewers_r2.pdf`](paper/response_to_reviewers_r2.pdf).
+after three rounds of peer review; the point-by-point replies are in
+[`paper/response_to_reviewers_r1.pdf`](paper/response_to_reviewers_r1.pdf),
+[`paper/response_to_reviewers_r2.pdf`](paper/response_to_reviewers_r2.pdf) and
+[`paper/response_to_reviewers_r3.pdf`](paper/response_to_reviewers_r3.pdf).
 See [`paper/README.md`](paper/README.md) to rebuild them.
 
 ## Headline results (synthetic Visakhapatnam year, seed 42)
@@ -45,6 +46,8 @@ parameters (including financing) gives the 25-year energy difference relative to
 | FPV freshwater | +1.5 % | −3.6 % to +6.3 % | 75 % |
 | FPV saline | −5.1 % | −11.5 % to +0.7 % | 4 % |
 
+These statistics are converged: with 5,000 samples, no median or 95 % bound moves by more than 0.3 percentage point.
+
 Floating PV runs cooler and, at baseline, yields more. Over the plant's life, though, the more humid air over the
 water and, at saline sites, chloride corrosion and salt-assisted PID take back part or all of that gain. The saline
 deficit is robust; the freshwater advantage depends mainly on the float design's heat-loss coefficients and on how dusty
@@ -61,7 +64,7 @@ modules are model assumptions; certification alone does not establish them.
 pip install -r requirements.txt
 python -m fpv_analysis                  # synthetic weather -> results/
 python -m fpv_analysis --weather my_site.csv --out results_my_site
-python -m pytest -q                     # 22 tests
+python -m pytest -q                     # 23 tests
 ./reproduce.sh                          # everything, including the paper (about 3 minutes)
 ```
 

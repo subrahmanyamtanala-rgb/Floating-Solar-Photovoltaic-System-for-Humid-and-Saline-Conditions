@@ -2,7 +2,7 @@
 Peck reference rate $R_{TH}^{ref}$ (\%/yr) & 0.1 & U & 0.06 & 0.14 & Calibration constant; land total $\approx$0.9--1\%/yr~\cite{dubey2014}; $\pm$40\% \\
 PID reference rate $R_{PID}^{ref}$ (\%/yr) & 0.06 & U & 0.03 & 0.09 & Calibration constant; $\pm$50\% \\
 Corrosion reference rate $R_C^{ref}$ (\%/yr) & 0.1 & U & 0.05 & 0.15 & Calibration constant; $\pm$50\% \\
-Dew optical loss & 0.04 & U & 0 & 0.06 & Assumption; effect shown negligible (Sec.~IV-C) \\
+Dew optical loss & 0.04 & U & 0 & 0.06 & Assumption; effect shown negligible (Sec.~\ref{sec:dew}) \\
 Dust loss coefficient $k_d$ (m$^2$/g) & 0.035 & U & 0.025 & 0.045 & Order of magnitude of dust-soiling studies~\cite{sarver2013} \\
 Salt loss coefficient $k_s$ (m$^2$/g) & 0.06 & U & 0.03 & 0.09 & Assumption; no measured salt-crust transmittance \\
 Deliquescence cementation factor & 0.5 & U & 0.25 & 0.75 & Assumption; salt crusts observed on coastal FPV~\cite{ahmad2026} \\
@@ -15,13 +15,13 @@ FPV $U_1$ (W\,s/m$^3$K) & 8 & U & 2.5 & 10 & Measured wind terms~\cite{dorenkamp
 Over-water wind factor $k_v$ & 1.15 & U & 1 & 1.35 & Assumption (lower surface roughness) \\
 Wave-motion mismatch & 0.007 & U & 0.003 & 0.015 & Assumption \\
 Air--water coupling $\alpha$ (fresh) & 0.25 & U & 0.1 & 0.4 & Assumption \\
-Dew-point rise $\Delta T_d$ (fresh, K) & 1 & U & 0.5 & 1.5 & Assumption; threshold analysis in Sec.~IV-F \\
+Dew-point rise $\Delta T_d$ (fresh, K) & 1 & U & 0.5 & 1.5 & Assumption; threshold analysis in Sec.~\ref{sec:thresholds} \\
 Air--water coupling $\alpha$ (saline) & 0.3 & U & 0.15 & 0.45 & Assumption \\
 Dew-point rise $\Delta T_d$ (saline, K) & 1.5 & U & 1 & 2 & Assumption \\
-Saline salt deposition (multiplier) & 1 & log-U & 0.5 & 2 & Assumption; threshold analysis in Sec.~IV-F \\
+Saline salt deposition (multiplier) & 1 & log-U & 0.5 & 2 & Assumption; threshold analysis in Sec.~\ref{sec:thresholds} \\
 Saline chloride deposition (multiplier) & 1 & log-U & 0.5 & 2 & 90--360 mg/m$^2$/day, ISO~9223 classes S2--S3~\cite{iso9223} \\
-PID mitigation $\mu_{PID}$ & 0.9 & U & 0.5 & 0.95 & Assumption (Table~IV); not implied by IEC~TS~62804-1 \\
-Salt-mist mitigation $\mu_C$ & 0.5 & U & 0.2 & 0.7 & Assumption (Table~IV); not implied by IEC~61701 \\
+PID mitigation $\mu_{PID}$ & 0.9 & U & 0.5 & 0.95 & Assumption (Table~\ref{tab:mitstd}); not implied by IEC~TS~62804-1 \\
+Salt-mist mitigation $\mu_C$ & 0.5 & U & 0.2 & 0.7 & Assumption (Table~\ref{tab:mitstd}); not implied by IEC~61701 \\
 Land CAPEX (INR/Wp) & 35 & U & 30 & 40 & Illustrative Indian-market range \\
 FPV fresh CAPEX (INR/Wp) & 45 & U & 38 & 52 & Illustrative Indian-market range \\
 FPV saline CAPEX (INR/Wp) & 52 & U & 44 & 60 & Illustrative Indian-market range \\
