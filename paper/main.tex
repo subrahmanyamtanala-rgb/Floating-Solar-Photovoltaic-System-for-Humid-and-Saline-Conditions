@@ -16,46 +16,51 @@
 \sisetup{range-phrase=--,range-units=single}
 \graphicspath{{figures/}}
 \input{generated/numbers.tex}
+\input{generated/numbers_review.tex}
+\input{generated/table_mc.tex}
+\input{generated/table_mitigation.tex}
+\input{generated/table_weather.tex}
 
 \newcommand{\RHs}{\mathit{RH}_{\mathrm{s}}}
 \newcommand{\RHe}{\mathit{RH}_{\mathrm{e}}}
 \newcommand{\TOWsym}{\mathit{TOW}}
+\newcommand{\yes}{$\checkmark$}
 
 \begin{document}
 
-\title{Performance Analysis of Floating Solar Photovoltaic Systems for Humid and Saline Conditions:\\
-A Coupled Thermal, Soiling and Degradation Assessment}
+\title{Lifetime Performance and Degradation of Floating Photovoltaic Systems Under Humid and Saline Conditions}
 
 \author{Subrahmanyam~Tanala%
-\thanks{Manuscript prepared October 2026.}%
+\thanks{Manuscript prepared October 2026; revised after peer review.}%
 \thanks{S. Tanala is with the Department of Electrical and Electronics Engineering, Anil Neerukonda Institute of Technology and Sciences (ANITS), Visakhapatnam 531162, Andhra Pradesh, India (e-mail: subrahmanyam.eee@anits.edu.in).}%
-\thanks{The simulation code, input parameters and all scripts used to produce the results are openly available (see the Data Availability section).}}
+\thanks{The simulation code, input parameters, random seeds and all scripts used to produce the results are openly available (see the Data Availability section).}}
 
 \markboth{IEEE Transactions on Sustainable Energy}%
-{Tanala: Performance Analysis of Floating PV for Humid and Saline Conditions}
+{Tanala: Lifetime Performance and Degradation of Floating PV Under Humid and Saline Conditions}
 
 \maketitle
 
 \begin{abstract}
-Floating photovoltaic (FPV) plants are usually credited with higher energy yield than land-based plants because the
-water body cools the modules. In hot, humid, coastal regions the same water body also supplies moisture and, at
-brackish or near-shore sites, airborne salt. Both accelerate soiling and degradation. This paper presents a coupled
-hourly model that captures these competing effects. The model combines an over-water microclimate, a humidity-dependent
-spectral correction, Faiman module temperature with dew formation, a dust and sea-salt soiling balance with NaCl
-deliquescence, and a four-mechanism degradation model: intrinsic, Peck temperature--humidity with lagged encapsulant
-moisture, potential-induced degradation (PID) with salt-assisted surface leakage, and chloride corrosion scaled by time
-of wetness. Three 1-MWp plants at Visakhapatnam, India, are compared: coastal land-mounted, freshwater FPV and saline
-FPV. Freshwater FPV runs \dTdayF~K cooler in daytime and yields \YieldF~kWh/kWp (+\GainYieldF\%) against
-\YieldL~kWh/kWp on land. Saline FPV loses this advantage in the first year (\GainYieldS\%). Over 25 years the humid
-air over water cancels the Arrhenius benefit of cooler modules for temperature--humidity degradation. At the saline site,
-corrosion and PID raise total degradation to \DegTotS\%/yr against \DegTotL\%/yr on land, so lifetime energy falls by
-\GainLifeS\%. PID-resistant, IEC~61701-certified modules recover \GainLifeSM\% of lifetime energy. The results hold over
-\NSeeds{} independent weather realizations and are most sensitive to the salt load.
+This study develops a coupled hourly simulation framework to quantify the competing thermal, humidity, soiling,
+potential-induced degradation (PID) and chloride-corrosion effects on floating photovoltaic (FPV) systems in hot, humid
+environments. A single over-water microclimate drives module temperature, module-surface humidity and dew, a dust and
+sea-salt soiling balance with NaCl deliquescence, and a four-mechanism module degradation model. The mechanisms are
+intrinsic ageing, Peck temperature--humidity damage with lagged encapsulant moisture, PID with salt-assisted surface
+leakage, and corrosion scaled by time of wetness and chloride deposition. For a representative Visakhapatnam (India)
+climate, the model compares coastal land PV, freshwater FPV and saline FPV. Under the baseline assumptions, freshwater
+FPV yields $+\GainYieldF$\% in year 1 and $+\GainLifeF$\% over 25 years. Saline FPV yields $\GainYieldS$\% and
+$\GainLifeS$\%, with a predicted degradation rate of \DegTotS\%/yr against \DegTotL\%/yr on land. A \NMC-sample Monte
+Carlo over \NParams{} uncertain parameters separates parameter uncertainty from weather variability. The saline deficit
+is robust: the 95\% interval of its lifetime-energy difference is [\MCLifeLoS, \MCLifeHiS]\%. The freshwater advantage
+is not: [\MCLifeLoF, \MCLifeHiF]\%, positive in \MCLifePosF\% of samples, and controlled mainly by the FPV heat-loss
+coefficients and the dust load at the land alternative. Freshwater FPV loses its lifetime advantage if the dew point over water rises by more than \DTdStar~K.
+Mitigation is modelled with explicitly assumed reduction factors, not inferred from certification. These results are
+model-based scenario predictions that still require field validation.
 \end{abstract}
 
 \begin{IEEEkeywords}
 Floating photovoltaics, humidity, salinity, soiling, potential-induced degradation, corrosion, module temperature,
-energy yield, degradation rate, levelized cost of energy.
+uncertainty quantification, degradation rate, levelized cost of energy.
 \end{IEEEkeywords}
 
 \section*{Nomenclature}
@@ -70,7 +75,8 @@ energy yield, degradation rate, levelized cost of energy.
 \item[$\mathit{SR}$] Soiling ratio.
 \item[$\TOWsym$] Time of wetness (h/yr).
 \item[$D_{\mathrm{Cl}}$] Chloride deposition rate (\si{\milli\gram\per\square\metre\per\day}).
-\item[$R$] Annual power degradation rate (\%/yr).
+\item[$R$] Annual module power degradation rate (\%/yr).
+\item[$\mu_{\mathrm{PID}}, \mu_{\mathrm{C}}$] Assumed mitigation factors for PID and corrosion.
 \item[$E_a$] Activation energy (eV).
 \item[$k_B$] Boltzmann constant (\SI{8.617e-5}{\electronvolt\per\kelvin}).
 \item[PR] Performance ratio.
@@ -80,56 +86,90 @@ energy yield, degradation rate, levelized cost of energy.
 \section{Introduction}
 \IEEEPARstart{F}{loating} photovoltaic (FPV) systems place PV arrays on pontoons over reservoirs, lakes, lagoons and
 sheltered coastal waters. They avoid competition for land, reduce evaporation from water-supply reservoirs and can share
-grid infrastructure with hydropower plants~\cite{worldbank2019,sahu2016,trapani2015,oliveirapinto2020}. India has a
-large inventory of reservoirs, salt pans and backwaters along a coast with high irradiation. FPV is therefore attractive
-there, but many candidate sites are hot, humid and exposed to marine aerosol.
+grid infrastructure with hydropower plants~\cite{worldbank2019,sahu2016,trapani2015,oliveirapinto2020,kumar2021}. India
+has many reservoirs, salt pans and backwaters along a coast with high irradiation, so FPV is attractive there, but many
+candidate sites are hot, humid and exposed to marine aerosol~\cite{makhija2023}.
 
-The performance case for FPV usually rests on the cooling effect of the water. Field studies in tropical Singapore found
-lower module temperatures and higher performance ratios for well-ventilated FPV designs than for a rooftop
-reference~\cite{liu2018}. Comparative measurements in the Netherlands and Singapore showed that the effective heat-loss
-coefficient of FPV depends strongly on how open the floating structure is~\cite{dorenkamper2021}. Simulation of offshore
-systems likewise predicts higher yield than for land-based systems, mainly because the modules run
-cooler~\cite{golroodbari2020}. Most of these assessments focus on first-year energy~\cite{choi2014}.
+The performance case for FPV usually rests on the cooling effect of the water. In tropical Singapore, well-ventilated
+FPV designs ran cooler and reached higher performance ratios than a rooftop reference~\cite{liu2018}, with
+irradiance-weighted temperatures up to \SI{14.5}{\celsius} lower~\cite{dorenkamper2021}. Offshore simulations also
+predict higher yields than on land~\cite{golroodbari2020}. More recent measurements show that the cooling effect varies
+widely with design. Modules that are not in thermal contact with the water behave much like land-based
+modules~\cite{lindholm2021}. Measured heat-loss coefficients span \SIrange{22.6}{33.7}{\watt\per\square\metre\per\kelvin}
+for several air-cooled systems~\cite{nysted2024,wu2024}, and wind-dependent terms of
+\SIrange{2.7}{5.1}{\watt\second\per\cubic\metre\per\kelvin} have been reported~\cite{dorenkamper2024}. A multi-year,
+humid-subtropical dataset found the FPV array only about \SI{0.8}{\kelvin} cooler than a co-located land
+reference~\cite{firat2026}.
 
-The cooling, however, comes with more humid air. Humidity and temperature together drive hydrolysis, delamination and
-corrosion in PV modules. The Peck model describes this damage as an Arrhenius function of temperature multiplied by a
-power of relative humidity~\cite{peck1986}, and moisture ingress through polymer backsheets takes hours to
-days~\cite{kempe2006}. Combined-stressor lifetime models confirm that humidity is a first-order variable for outdoor
-degradation~\cite{kaaya2019}. Potential-induced degradation (PID) is strongly accelerated by humidity and surface
-conductivity~\cite{pingel2010,hacke2011,iec62804}. Field surveys report higher degradation rates in hot climates than in
-temperate ones~\cite{jordan2013}; in India the hot and humid zones are among the worst affected~\cite{dubey2014}. At
-saline sites, chloride deposition and long time of wetness define the atmospheric corrosivity class of the
-site~\cite{iso9223}. Salt mist is a recognized qualification stress for PV modules~\cite{iec61701}. Sea-salt deposits
-also add to soiling, which is a major loss in sunny climates~\cite{sarver2013,kimber2006}.
+The water body also raises humidity and, at saline sites, airborne salt. The Peck model describes humidity-driven damage
+as an Arrhenius function of temperature times a power of relative humidity~\cite{peck1986}, and moisture enters
+polymer-backsheet modules over hours to days~\cite{kempe2006}. Combined-stressor lifetime models confirm that humidity
+is a first-order variable~\cite{kaaya2019}. PID is strongly accelerated by humidity~\cite{pingel2010,hacke2011,
+hoffmann2014,luo2017,bora2021}. Sea salt lowers the surface resistance of module glass by several orders of magnitude
+as RH rises~\cite{hacke2015}, and salt raises leakage current~\cite{islam2018}. Field surveys report higher
+degradation in hot climates~\cite{jordan2013}, and in India the hot--humid zones are among the worst
+affected~\cite{dubey2014}. Chloride deposition and time of wetness define atmospheric corrosivity~\cite{iso9223}, and
+salt mist is a module qualification stress~\cite{iec61701}. Salt crystallization dominates the deposits on coastal FPV
+modules~\cite{ahmad2026}, and salt exposure acts on PV through soiling, corrosion, leakage-driven PID and barrier
+ageing~\cite{goharian2026}.
 
-What is missing is an analysis that couples these mechanisms through the same microclimate. If the water body lowers
-module temperature but raises humidity, the net effect on lifetime energy is not obvious. It also differs between
-freshwater and saline sites. This paper addresses that gap with the following contributions:
+Two recent studies come closest to this work. Mannino \emph{et al.}~\cite{mannino2023} applied existing degradation
+models to onshore and offshore meteorological data. Ajmal \emph{et al.}~\cite{ajmal2025} added salinity to climatic
+degradation models for offshore modules and calibrated them by optimization. Table~\ref{tab:lit} compares the scope of
+representative studies. To the author's knowledge, no study yet resolves, within one consistent microclimate, both the
+yield benefits of FPV and the humidity-, salt- and PID-driven penalties, and compares freshwater with saline sites over
+the plant lifetime and in cost terms.
+
+\begin{table}[!t]
+\caption{Scope of Representative Studies (\yes{} = Addressed)}
+\label{tab:lit}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{1.6pt}
+\begin{tabular}{@{}lccccccccc@{}}
+\toprule
+Study & FPV & Therm. & Hum. & Soil. & Salt & PID & Corr. & Life & LCOE \\
+\midrule
+Liu \emph{et al.}~\cite{liu2018} & \yes & \yes & & & & & & & \\
+D{\"o}renk{\"a}mper \emph{et al.}~\cite{dorenkamper2021} & \yes & \yes & & & & & & & \\
+Lindholm \emph{et al.}~\cite{lindholm2021} & \yes & \yes & & & & & & & \\
+Golroodbari, van Sark~\cite{golroodbari2020} & \yes & \yes & & & & & & & \\
+Ahmad \emph{et al.}~\cite{ahmad2026} & \yes & \yes & & \yes & \yes & & & & \\
+Kaaya \emph{et al.}~\cite{kaaya2019} & & \yes & \yes & & & & & \yes & \\
+Mannino \emph{et al.}~\cite{mannino2023} & \yes & \yes & \yes & & & & & \yes & \\
+Ajmal \emph{et al.}~\cite{ajmal2025} & \yes & \yes & \yes & & \yes & & & \yes & \\
+\textbf{This work} & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes & \yes \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+This paper makes the following contributions:
 \begin{enumerate}
 \item A coupled hourly model chain in which one over-water microclimate drives module temperature, dew, spectral
-response, soiling and four degradation mechanisms, so their trade-offs are resolved consistently.
-\item A moisture formulation based on module-surface relative humidity with a first-order encapsulant lag. It captures
-why cooler modules see more moisture, and it couples this to PID through salt-assisted surface leakage.
-\item A quantitative comparison of coastal land PV, freshwater FPV and saline FPV for a representative hot--humid
-Indian site. The comparison covers first-year losses, mechanism-resolved degradation, 25-year energy and levelized cost
-of energy (LCOE), with and without PID- and salt-mist-resistant modules.
-\item A humidity--salinity sensitivity map and a \NSeeds-realization weather ensemble that separate robust conclusions
-from weather noise.
+response, soiling and four module-degradation mechanisms, so that their trade-offs are resolved consistently.
+\item A moisture formulation based on module-surface RH with a lagged encapsulant response. It captures why cooler
+modules can see more moisture, and it couples PID to salt-assisted surface leakage.
+\item A comparison of coastal land PV, freshwater FPV and saline FPV covering year-1 losses, mechanism-resolved
+degradation, 25-year energy and LCOE. Mitigation options are evaluated one by one, with explicitly assumed effects.
+\item An uncertainty analysis that separates weather variability (\NSeeds{} synthetic years) from parameter
+uncertainty (a \NMC-sample Monte Carlo over \NParams{} parameters). It is complemented by break-even thresholds for
+salt deposition, chloride deposition and dew-point rise, and by economic break-even values for CAPEX, land cost and
+water value.
 \end{enumerate}
 
-The rest of the paper is organized as follows. Section~\ref{sec:site} describes the site and the scenarios.
-Section~\ref{sec:model} presents the model. Section~\ref{sec:results} reports the results, Section~\ref{sec:discussion}
-discusses implications and limitations, and Section~\ref{sec:conclusion} concludes.
+\emph{Scope.} The degradation results describe the \emph{electrical degradation of the PV modules}. Degradation of the
+floating system itself (fatigue of floats and moorings, corrosion of structures~\cite{xiong2025,feng2025}, storm
+damage, bio-fouling) is outside the model, so the lifetime energy reported here is not a complete FPV lifetime
+prediction.
 
 %==========================================================================
 \section{Site and Study Scenarios}\label{sec:site}
 
 The reference site is Visakhapatnam (\ang{17.69}~N, \ang{83.22}~E) on the Bay of Bengal. Its climate is tropical,
-with a hot pre-monsoon season (April--May), the south-west monsoon (June--September) and the north-east monsoon with
-cyclonic activity (October--November). An hourly typical year was synthesized from monthly normals
-(Section~\ref{sec:weather}). It has a global horizontal irradiation (GHI) of \GHI~\si{\kilo\watt\hour\per\square\metre},
-a mean air temperature of \Tair~\si{\celsius}, a mean relative humidity of \RHair\% and \Rain~mm of rain
-(Fig.~\ref{fig:climate}).
+with a hot pre-monsoon season (April--May), the south-west monsoon (June--September) and the north-east monsoon
+(October--November). An hourly typical year was synthesized from monthly normals (Section~\ref{sec:weather}). It has a
+GHI of \GHI~\si{\kilo\watt\hour\per\square\metre}, a mean air temperature of \Tair~\si{\celsius}, a mean RH of \RHair\%
+and \Rain~mm of rain (Fig.~\ref{fig:climate}).
 
 \begin{figure}[!t]
 \centering
@@ -139,18 +179,15 @@ humidity and (d) rainfall.}
 \label{fig:climate}
 \end{figure}
 
-Three 1-MWp (DC) plants with a DC/AC ratio of 1.2 and monocrystalline PERC modules
-(\SI{-0.35}{\percent\per\kelvin}) are compared. Their parameters are listed in Table~\ref{tab:params}:
-\begin{itemize}
-\item \emph{Land PV}: a coastal ground-mounted plant on open racks with \ang{15} tilt (the reference).
-\item \emph{FPV freshwater}: a pontoon plant with \ang{12} tilt on an inland reservoir with low chloride deposition.
-\item \emph{FPV saline}: the same pontoon design on near-shore or brackish water (lagoon, salt pan or harbour) with high
-salt and chloride loading.
-\end{itemize}
-Each plant is also simulated with PID-resistant modules certified to IEC~61701 severity level~6 (``mitigated'',~M).
+Three 1-MWp (DC) plants with a DC/AC ratio of 1.2 and monocrystalline PERC modules (\SI{-0.35}{\percent\per\kelvin})
+are compared (Table~\ref{tab:params}). \emph{Land PV} is a coastal ground-mounted plant on open racks with \ang{15}
+tilt. \emph{FPV freshwater} is a pontoon plant with \ang{12} tilt on an inland reservoir with low chloride deposition.
+\emph{FPV saline} uses the same design on near-shore or brackish water (lagoon, salt pan, harbour) with high salt and
+chloride loading. The baseline values are scenario assumptions informed by the literature, not site measurements; their
+uncertainty is propagated in Section~\ref{sec:uq}.
 
 \begin{table}[!t]
-\caption{Scenario Parameters}
+\caption{Baseline Scenario Parameters (Assumptions)}
 \label{tab:params}
 \centering
 \footnotesize
@@ -181,10 +218,9 @@ O\&M (INR/kWp/yr) & 450 & 550 & 750 \\
 %==========================================================================
 \section{Modeling Framework}\label{sec:model}
 
-The model chain is shown in Fig.~\ref{fig:chain}. All sub-models run at hourly resolution over one year. Degradation
-rates are computed from the hourly stresses and then projected over the 25-year life of the plant. The established
-irradiance and electrical models follow their reference formulations, as implemented, for example, in
-pvlib~\cite{holmgren2018}.
+The model chain is shown in Fig.~\ref{fig:chain}. All sub-models run hourly over one year; degradation rates computed
+from the hourly stresses are projected over a 25-year life. The established irradiance and electrical models follow
+their reference formulations, as implemented, for example, in pvlib~\cite{holmgren2018}.
 
 \begin{figure}[!t]
 \centering
@@ -221,10 +257,31 @@ pvlib~\cite{holmgren2018}.
 
 \subsection{Weather and Over-Water Microclimate}\label{sec:weather}
 The synthetic year draws daily rain occurrence and amounts, a first-order autoregressive daily clearness index and
-daily temperature anomalies from monthly normals. Hourly GHI is the Haurwitz clear-sky value~\cite{haurwitz1945} scaled
-by the clearness index. Air temperature follows an asymmetric diurnal cycle, with the minimum near 05:00 and the maximum
-near 14:00. Holding the dew point $T_d$ constant over each day reproduces the observed diurnal swing in relative
-humidity. Wind speed includes an afternoon sea breeze. Measured series can be used in place of the synthetic year.
+daily temperature anomalies from monthly normals. Hourly GHI is the Haurwitz clear-sky value~\cite{haurwitz1945}
+scaled by the clearness index. Air temperature follows an asymmetric diurnal cycle with its minimum near 05:00 and its
+maximum near 14:00. The dew point $T_d$ is held constant over each day, which reproduces the diurnal swing of RH, and
+is shifted per month so that the monthly mean RH matches the normal. Wind speed includes a mean-preserving afternoon
+sea breeze. Table~\ref{tab:weather} compares \NSeeds{} generated years with the normals they are built from. This shows
+that the generator is unbiased with respect to its inputs; it is \emph{not} an external validation, because no
+measured hourly series was available to this study. The RH match is exact by construction, and the monthly
+clearness index (hence GHI) is a calibrated input that has not been checked against measurements.
+
+\begin{table}[!t]
+\caption{Synthetic Weather Versus Input Climatology (\NSeeds{} Years)}
+\label{tab:weather}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lccccc@{}}
+\toprule
+Variable & Normal & Generated & MBE & RMSE & $r$ \\
+\midrule
+\TabWeather
+\bottomrule
+\end{tabular}\\[2pt]
+\parbox{\columnwidth}{\scriptsize MBE, RMSE and $r$ are computed over the 12 monthly means. $^{\dagger}$Annual totals;
+MBE and RMSE in mm/month.}
+\end{table}
 
 Over water, the air temperature is pulled towards the water temperature $T_w$, taken as the 30-day running mean of air
 temperature plus \SI{0.5}{\kelvin}. The dew point rises by $\Delta T_d$ because of evaporation, and the wind speed
@@ -240,26 +297,23 @@ Relative humidity follows from the Magnus relation $e_s(T)=6.112\exp[17.62T/(243
 $\mathit{RH}=100\,e_s(T_d')/e_s(T_a')$.
 
 \subsection{Irradiance, Incidence and Spectrum}
-Solar position uses Spencer's series~\cite{spencer1971}. GHI is decomposed with the Erbs
-correlation~\cite{erbs1982} and transposed to the array plane with the Hay--Davies model~\cite{hay1980}:
+Solar position uses Spencer's series~\cite{spencer1971}. GHI is decomposed with the Erbs correlation~\cite{erbs1982}
+and transposed to the array plane with the Hay--Davies model~\cite{hay1980}:
 \begin{multline}
 G = G_b\cos\theta + G_d\left[A_i R_b + (1-A_i)\tfrac{1+\cos\beta}{2}\right]\\
 + \rho\,G_h\tfrac{1-\cos\beta}{2},
 \label{eq:poa}
 \end{multline}
-where $\theta$ is the angle of incidence, $\beta$ the tilt, $A_i$ the anisotropy index, $R_b$ the beam ratio and
-$\rho$ the albedo. Water has a much lower albedo than land (0.07 against 0.20). Beam reflection losses use the ASHRAE
-modifier $\mathrm{IAM}=1-b_0(1/\cos\theta-1)$ with $b_0=0.05$; diffuse and ground-reflected light take a constant
-factor of 0.95.
-
-Humid air absorbs mainly in infrared bands where crystalline silicon responds weakly. The spectral mismatch factor for
-mono-Si is therefore computed from the Kasten--Young air mass $\mathit{AM}$~\cite{kasten1989} and the precipitable
-water $w$ (cm), estimated from surface temperature and humidity~\cite{gueymard1994}:
+where $\theta$ is the angle of incidence, $\beta$ the tilt, $A_i$ the anisotropy index, $R_b$ the beam ratio and $\rho$
+the albedo (0.07 for water, 0.20 for land). Beam reflection losses use the ASHRAE modifier
+$\mathrm{IAM}=1-b_0(1/\cos\theta-1)$ with $b_0=0.05$; diffuse and ground-reflected light take a constant factor of 0.95.
+Humid air absorbs mainly in infrared bands where c-Si responds weakly, so the mono-Si spectral factor is computed from
+the Kasten--Young air mass $\mathit{AM}$~\cite{kasten1989} and the precipitable water $w$~\cite{gueymard1994}:
 \begin{equation}
 M = c_1 + c_2\mathit{AM} + c_3 w + c_4\sqrt{\mathit{AM}} + c_5\sqrt{w} + c_6\,\mathit{AM}/\sqrt{w},
 \label{eq:spectral}
 \end{equation}
-with the mono-Si coefficients of~\cite{lee2016}.
+with the coefficients of~\cite{lee2016}.
 
 \subsection{Module Temperature, Surface Humidity and Dew}
 Module temperature follows the Faiman model~\cite{faiman2008}. A net long-wave loss of
@@ -268,30 +322,32 @@ $q_{\mathrm{sky}}=\SI{40}{\watt\per\square\metre}$ to the night sky applies when
 T_m = T_a' + \frac{G - q_{\mathrm{sky}}\,\mathbb{1}[G<50]}{U_0 + U_1 v'}.
 \label{eq:faiman}
 \end{equation}
-The land coefficients are the open-rack defaults. The FPV values lie within the range of heat-loss coefficients
-reported for pontoon systems~\cite{liu2018,dorenkamper2021}. The relative humidity of the air layer in contact with the
-glass is
+The land coefficients are the open-rack defaults. The baseline FPV coefficients (Table~\ref{tab:params}) represent a
+well-ventilated pontoon design~\cite{liu2018,dorenkamper2021}. Because measured values for other designs are
+considerably lower~\cite{nysted2024,wu2024,dorenkamper2024,firat2026}, the Monte Carlo ranges include FPV coefficients
+no better than those of open racks. The RH of the air layer in contact with the glass is
 \begin{equation}
-\RHs = 100\,e_s(T_d')/e_s(T_m),
+\RHs = 100\,e_s(T_d')/e_s(T_m).
 \label{eq:rhs}
 \end{equation}
-so a hot module is effectively dry and a module colder than the dew point is wet. Dew forms when
-$T_m - T_d' < \SI{1}{\kelvin}$ and persists after sunrise until $T_m - T_d' > \SI{4}{\kelvin}$. While dew is present, a
-4\% optical loss applies.
+Dew forms when $T_m - T_d' < \SI{1}{\kelvin}$ and persists after sunrise until $T_m - T_d' > \SI{4}{\kelvin}$. While dew
+is present, an optical loss of 4\% is applied. This value is an engineering assumption, not a measured quantity;
+Section~\ref{sec:dew} shows that the conclusions are insensitive to it over 0--6\%.
 
 \subsection{Dust and Sea-Salt Soiling}
-Dust and salt surface densities evolve by a daily mass balance. Dust accumulates at $r_d$, and salt at $r_s\,v/v_0$ with
-$v_0=\SI{3}{\metre\per\second}$, because sea-spray generation rises with wind. Rain above \SI{2}{mm/day} removes a
-fraction $\eta_d f_\beta$ of the dust and $\eta_s f_\beta$ of the salt. Here $\eta_d = 0.80$, $\eta_s = 0.95$ (salt is
-soluble) and $f_\beta=\sin\beta/\sin\ang{20}$, so cleaning is less effective at low tilt. When the daily maximum RH
-exceeds the NaCl deliquescence point of 75\%, the dissolved salt recrystallizes as a crust that cements dust to the
-glass. On such days the dust-cleaning efficiency is halved. All plants are cleaned every 15~days with 95\% efficiency.
-The soiling ratio is
+Dust and salt surface densities evolve by a daily mass balance. Dust accumulates at $r_d$, and salt at $r_s\,v/v_0$
+with $v_0=\SI{3}{\metre\per\second}$, because sea-spray generation rises with wind. Rain above \SI{2}{mm/day} removes a
+fraction $\eta_d f_\beta$ of the dust and $\eta_s f_\beta$ of the salt, with $\eta_d = 0.80$, $\eta_s = 0.95$ (salt is
+soluble) and $f_\beta=\sin\beta/\sin\ang{20}$. When the daily maximum RH exceeds the NaCl deliquescence point of 75\%,
+dissolved salt recrystallizes as a crust that cements dust to the glass~\cite{ahmad2026}; on such days the
+dust-cleaning efficiency is reduced by the cementation factor (baseline 0.5). All plants are cleaned every 15~days with
+95\% efficiency. The soiling ratio is
 \begin{equation}
 \mathit{SR} = \max\left(\mathit{SR}_{\min},\,1 - k_d m_d - k_s m_s\right),
 \label{eq:soiling}
 \end{equation}
-with $k_d=0.035$ and $k_s=\SI{0.060}{\square\metre\per\gram}$.
+with $k_d=0.035$ and $k_s=\SI{0.060}{\square\metre\per\gram}$. The deposition rates and coefficients are not
+site-measured, so they are varied in Sections~\ref{sec:thresholds} and~\ref{sec:uq}.
 
 \subsection{Electrical Model}
 The effective irradiance $G_{\mathrm{eff}}$ includes the incidence, spectral, soiling and dew corrections. DC power
@@ -301,20 +357,17 @@ P_{\mathrm{dc}} = P_0\,\frac{G_{\mathrm{eff}}}{1000}\left[1+\gamma(T_m-25)\right
 \label{eq:pdc}
 \end{equation}
 where $\gamma=\SI{-0.0035}{\per\kelvin}$ and $\ell_j$ are the wiring, mismatch, wave-motion and light-induced
-degradation (LID, 1\%) losses. The PVWatts inverter curve (nominal efficiency 98\%) applies, with clipping at the AC
-rating, followed by the availability factor. Each loss is reported as a percentage of the energy at the preceding
-stage of the chain.
+degradation (LID, 1\%) losses. The PVWatts inverter curve (98\% nominal) with clipping and an availability factor
+follow.
 
-\subsection{Degradation Model}
-The annual degradation rate is the sum of four mechanisms:
+\subsection{Module Degradation Model}
+The annual module degradation rate is the sum of four mechanisms:
 \begin{equation}
-R = R_0 + R_{\mathrm{TH}} + R_{\mathrm{PID}} + R_{\mathrm{C}}.
+R = R_0 + R_{\mathrm{TH}} + R_{\mathrm{PID}} + R_{\mathrm{C}},
 \label{eq:R}
 \end{equation}
-The intrinsic term $R_0=0.30$\%/yr covers ultraviolet exposure and thermal cycling and does not depend on the site.
-
-\emph{Temperature--humidity.} Moisture inside the encapsulant follows the surface humidity with a first-order lag of time
-constant $\tau=\SI{48}{h}$, representing diffusion through the backsheet~\cite{kempe2006}:
+where $R_0=0.30$\%/yr covers ultraviolet exposure and thermal cycling. Encapsulant moisture follows the surface
+humidity with a first-order lag ($\tau=\SI{48}{h}$)~\cite{kempe2006}:
 \begin{equation}
 \RHe(t) = \RHe(t-1) + \kappa\,\bigl[\RHs(t)-\RHe(t-1)\bigr],
 \label{eq:rhe}
@@ -324,18 +377,17 @@ with $\kappa = 1-e^{-\Delta t/\tau}$. With the Arrhenius factor
 a_E(T_m) = \exp\!\left[-\frac{E}{k_B}\left(\frac{1}{T_m}-\frac{1}{T_{\mathrm{ref}}}\right)\right],
 \label{eq:arr}
 \end{equation}
-the Peck rate~\cite{peck1986} is averaged over the year:
+the Peck rate~\cite{peck1986} averaged over the year is
 \begin{equation}
 R_{\mathrm{TH}} = R_{\mathrm{TH}}^{\mathrm{ref}}\left\langle a_{E_a}(T_m)
-\left(\frac{\RHe}{\mathit{RH}_{\mathrm{ref}}}\right)^{n}\right\rangle,
+\left(\frac{\phi\,\RHe}{\mathit{RH}_{\mathrm{ref}}}\right)^{n}\right\rangle,
 \label{eq:peck}
 \end{equation}
-with $E_a=\SI{0.79}{eV}$, $n=3$, $T_{\mathrm{ref}}=\SI{25}{\celsius}$ and $\mathit{RH}_{\mathrm{ref}}=60\%$. Because
-$\RHs$ depends on $T_m$, cooling a module lowers the Arrhenius factor but raises $\RHe$; \eqref{eq:peck} resolves this
-trade-off.
+with $E_a=\SI{0.79}{eV}$, $n=3$, $T_{\mathrm{ref}}=\SI{25}{\celsius}$ and $\mathit{RH}_{\mathrm{ref}}=60\%$. The factor
+$\phi=1$ applies to standard glass--backsheet modules. Because $\RHs$ depends on $T_m$, cooling a module lowers the
+Arrhenius factor but raises $\RHe$; \eqref{eq:peck} resolves this trade-off.
 
-\emph{Potential-induced degradation.} PID acts only while the array is energized ($G>\SI{50}{\watt\per\square\metre}$).
-Its rate depends on module temperature and on the probability that a conductive film covers the glass:
+PID acts only while the array is energized ($G>\SI{50}{\watt\per\square\metre}$):
 \begin{equation}
 R_{\mathrm{PID}} = R_{\mathrm{PID}}^{\mathrm{ref}}(1-\mu_{\mathrm{PID}})
 \bigl\langle a_{E_{\mathrm{PID}}}(T_m)\,f_{\mathrm{leak}}\bigr\rangle_{\mathrm{on}},
@@ -345,58 +397,102 @@ R_{\mathrm{PID}} = R_{\mathrm{PID}}^{\mathrm{ref}}(1-\mu_{\mathrm{PID}})
 f_{\mathrm{leak}} = \left[1+\exp\left(-\frac{\mathit{RH} - (\mathit{RH}_{50} - \Delta_s\,s)}{5}\right)\right]^{-1},
 \label{eq:leak}
 \end{equation}
-where $E_{\mathrm{PID}}=\SI{0.9}{eV}$, $\mathit{RH}_{50}=70\%$, and $s=\min(m_s/0.5,1)$ is the salt coverage. A full
-hygroscopic salt film lowers the threshold by $\Delta_s=15\%$~RH. The factor $\mu_{\mathrm{PID}}=0.9$ applies to
-PID-resistant modules~\cite{pingel2010,hacke2011,iec62804}.
+where $E_{\mathrm{PID}}=\SI{0.9}{eV}$, $\mathit{RH}_{50}=70\%$ and $s=\min(m_s/0.5,1)$ is the salt coverage. The
+leakage term follows the strong humidity dependence of PID~\cite{hoffmann2014,luo2017}. A full hygroscopic salt film
+lowers the conduction threshold by $\Delta_s=15\%$~RH, consistent with the orders-of-magnitude drop in glass surface
+resistance measured with sea salt~\cite{hacke2015,islam2018}.
 
-\emph{Chloride corrosion.} Following the ISO~9223 logic of time of wetness and chloride deposition~\cite{iso9223}, the
-corrosion rate is
+The corrosion rate follows the ISO~9223 logic of time of wetness and chloride deposition~\cite{iso9223}:
 \begin{equation}
 R_{\mathrm{C}} = R_{\mathrm{C}}^{\mathrm{ref}}\,\frac{\TOWsym}{\TOWsym_{\mathrm{ref}}}
 \sqrt{\frac{D_{\mathrm{Cl}}}{D_{\mathrm{ref}}}}\,(1-\mu_{\mathrm{C}}),
 \label{eq:corr}
 \end{equation}
-where $\TOWsym$ counts the hours with $\mathit{RH}>80\%$ or with dew on the module. The reference values are
-$\TOWsym_{\mathrm{ref}}=\SI{2500}{h}$ and $D_{\mathrm{ref}}=\SI{60}{\milli\gram\per\square\metre\per\day}$, and
-$\mu_{\mathrm{C}}=0.5$ for IEC~61701 severity-6 modules~\cite{iec61701}.
+where $\TOWsym$ counts the hours with $\mathit{RH}>80\%$ or dew on the module, $\TOWsym_{\mathrm{ref}}=\SI{2500}{h}$ and
+$D_{\mathrm{ref}}=\SI{60}{\milli\gram\per\square\metre\per\day}$.
 
 The reference rates ($R_{\mathrm{TH}}^{\mathrm{ref}}=0.10$, $R_{\mathrm{PID}}^{\mathrm{ref}}=0.06$ and
 $R_{\mathrm{C}}^{\mathrm{ref}}=0.10$\%/yr) were calibrated so that standard modules on land at this site degrade by
-roughly 1\%/yr. That is the order of magnitude reported for hot--humid Indian climates~\cite{dubey2014}, and above the
-global median of about 0.5\%/yr~\cite{jordan2013}.
+roughly 0.9--1\%/yr. That is the order of magnitude reported for hot--humid Indian climates~\cite{dubey2014}, above
+the global median of about 0.5\%/yr~\cite{jordan2013}. They are calibration constants, not measured site values, and
+are varied over a factor of about two in the Monte Carlo.
+
+\subsection{Mitigation Options and Their Assumed Effects}\label{sec:mit}
+Qualification standards define test procedures; they do not establish a numerical reduction of field degradation. The
+mitigation cases are therefore described by the technology and the standard used to qualify it, and their effect
+enters the model through \emph{explicitly assumed} factors (Table~\ref{tab:mitstd}). Salt-mist resistance is qualified
+with IEC~61701~\cite{iec61701}. PID susceptibility of crystalline-silicon modules is evaluated with IEC~TS~62804-1
+\cite{iec62804}; accelerated PID tests have been used to predict field PID rates~\cite{li2025}. The factors
+$\mu_{\mathrm{PID}}$ and $\mu_{\mathrm{C}}$ are sampled over wide ranges in Section~\ref{sec:uq}. In the rest of the
+paper, ``(M)'' denotes modules with both PID-resistant technology and salt-mist hardening.
+
+\begin{table}[!t]
+\caption{Mitigation Options: Qualification Standards and Model Assumptions}
+\label{tab:mitstd}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2pt}
+\begin{tabular}{@{}p{17mm}p{18mm}p{21mm}p{17mm}@{}}
+\toprule
+Option & Qualification & Model representation & Assumed value (MC range) \\
+\midrule
+PID-resistant cell/ encapsulant & IEC TS 62804-1:2025 & Factor $(1-\mu_{\mathrm{PID}})$ on $R_{\mathrm{PID}}$ & $\mu_{\mathrm{PID}}=0.9$ (0.5--0.95) \\
+Salt-mist-hardened module & IEC 61701:2020 & Factor $(1-\mu_{\mathrm{C}})$ on $R_{\mathrm{C}}$ & $\mu_{\mathrm{C}}=0.5$ (0.2--0.7) \\
+Glass--glass, low-permeability encapsulant & No specific standard & Factor $\phi$ on $\RHe$ & $\phi=0.8$ \\
+More frequent cleaning & O\&M practice & Cleaning interval & 7~days (vs.\ 15) \\
+\bottomrule
+\end{tabular}\\[2pt]
+\parbox{\columnwidth}{\scriptsize Assumed cost adders: 0.5, 1.0 and 2.0 INR/Wp for the three module options and
+100~INR/kWp/yr per additional fortnightly cleaning.}
+\end{table}
 
 \subsection{Lifetime Energy and Economics}
-Year-$y$ energy is $E_y = E_1(1-R/100)^{y-1}$ over a life of $N=25$ years. The LCOE is
+Year-$y$ energy is $E_y = E_1(1-R/100)^{y-1}$ over $N=25$ years, and the LCOE is
 \begin{equation}
-\mathrm{LCOE} = \frac{C_0 + \sum_{y=1}^{N} O_y(1+r)^{-y}}{\sum_{y=1}^{N}E_y(1+r)^{-y}},
+\mathrm{LCOE} = \frac{C_0 + \sum_{y=1}^{N} O_y(1+r)^{-y} - \sum_{y=1}^{N} B_y(1+r)^{-y}}{\sum_{y=1}^{N}E_y(1+r)^{-y}},
 \label{eq:lcoe}
 \end{equation}
-with a discount rate $r=9\%$ and O\&M costs $O_y$ that escalate by 5\%/yr. The costs in Table~\ref{tab:params} are
-illustrative Indian-market values. For the freshwater plant, the evaporation avoided by shading
-(\SI{10}{\square\metre\per\kilo\watt p}, 65\% suppression of \SI{1800}{mm/yr} pan evaporation) is reported as a
-co-benefit.
+with a discount rate $r=9\%$ and O\&M costs $O_y$ escalating by 5\%/yr. $B_y = c_w V_w$ is an optional water benefit:
+for the freshwater plant, $V_w$ is the evaporation avoided by shading (\SI{10}{\square\metre\per\kilo\watt p}, 65\%
+suppression of \SI{1800}{mm/yr} pan evaporation) and $c_w$ a water value. The costs are illustrative Indian-market
+values. Because LCOE is linear in $C_0$ and $c_w$, break-even values follow in closed form.
+
+\subsection{Uncertainty Quantification}\label{sec:uq}
+Two sources of uncertainty are treated separately. \emph{Weather variability} is represented by \NSeeds{} independent
+synthetic years. \emph{Parameter uncertainty} is propagated by Monte Carlo sampling of \NParams{} parameters
+(\NMC{} samples): the three degradation reference rates, the dew optical loss (0--6\%), the soiling coefficients and
+cementation factor, the land and FPV heat-loss coefficients ($U_0$: 22--29 and \SIrange{22}{45}{\watt\per\square\metre
+\per\kelvin}; $U_1$: 4.5--8 and \SIrange{2.5}{10}{\watt\second\per\cubic\metre\per\kelvin}), the wind factor, the
+wave-motion mismatch, $\alpha$ and $\Delta T_d$ for each FPV site, the dust, salt and chloride deposition
+(log-uniform, $0.5\times$--$2\times$), $\mu_{\mathrm{PID}}$, $\mu_{\mathrm{C}}$ and the CAPEX of each plant. Parameters
+shared by the plants (e.g., the reference rates) take the same draw in all scenarios of a sample, so the scenario
+differences are paired. Spearman rank correlations identify the dominant parameters. The ranges, seeds and baseline
+values are stored in a machine-readable file in the repository.
 
 %==========================================================================
 \section{Results}\label{sec:results}
 
+Unless stated otherwise, the results below are model predictions under the baseline assumptions of
+Table~\ref{tab:params}.
+
 \subsection{Thermal Behavior}
-Fig.~\ref{fig:temp} shows the mean diurnal module temperature in May, the hottest month. Over the year, floating modules
-run \dTdayF~K cooler in daytime than land-mounted modules, and their peak temperature is \dTmaxF~K lower
-(Table~\ref{tab:perf}). The mean daytime module-to-air temperature rise falls from \TriseL~K on land to \TriseF~K
-(freshwater) and \TriseS~K (saline). The saline plant runs slightly cooler still because of its stronger air--water
-coupling and higher wind. At night the picture reverses. Modules on land radiate below the air temperature, while over
-water the air stays warmer and the modules follow it; yet the higher dew point keeps floating modules closer to
-condensation. Dew is present on the glass for \DewL~h on land, \DewF~h on freshwater and \DewS~h on saline water.
+Fig.~\ref{fig:temp} shows the mean diurnal module temperature in May. Over the year, floating modules run \dTdayF~K
+cooler in daytime and their peak temperature is \dTmaxF~K lower (Table~\ref{tab:perf}). The daytime module-to-air rise
+falls from \TriseL~K on land to \TriseF~K (freshwater) and \TriseS~K (saline). At night the air over water stays warmer
+and the modules follow it, while the higher dew point keeps the air near the array more humid. Dew is present for
+\DewL, \DewF{} and \DewS~h/yr at the land, freshwater and saline plants. The thermal advantage depends directly on the
+assumed FPV heat-loss coefficients, which are the most uncertain thermal inputs (Section~\ref{sec:uqres}).
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{module_temperature.pdf}
-\caption{Mean module temperature by hour of day in May for the three plants, with the site air temperature.}
+\caption{Mean module temperature by hour of day in May for the three plants, with the site air temperature (baseline
+parameters).}
 \label{fig:temp}
 \end{figure}
 
 \begin{table}[!t]
-\caption{Year-1 Performance}
+\caption{Year-1 Performance (Baseline)}
 \label{tab:perf}
 \centering
 \footnotesize
@@ -420,29 +516,24 @@ Mean daytime soiling ratio & \SRL & \SRF & \SRS \\
 \end{table}
 
 \subsection{Energy Yield and Loss Breakdown}
-Freshwater FPV gives the highest first-year specific yield, \YieldF~kWh/kWp, which is \GainYieldF\% above the land
-plant. Its PR is \PRF{} against \PRL{} (Table~\ref{tab:perf}). The loss breakdown in Table~\ref{tab:loss} and
-Fig.~\ref{fig:loss} shows where the gain comes from. The temperature loss falls from \LossModuleTemperatureL\% to
-\LossModuleTemperatureF\%, and the soiling loss falls from \LossSoilingL\% to \LossSoilingF\% because little dust
-reaches the water surface. Part of this gain is given back by DC losses (longer cable runs and wave-induced mismatch:
-\LossDcWiringMismatchMotionLidF\% against \LossDcWiringMismatchMotionLidL\%), by lower availability and by
-slightly lower POA irradiation from the lower tilt and the low albedo of water.
-
-The saline plant has the same thermal advantage (\LossModuleTemperatureS\%). Salt soiling, however, brings its soiling
-loss back to the land level (\LossSoilingS\%). With the highest DC and availability losses, its first-year yield is
-\YieldS~kWh/kWp (\GainYieldS\% against land). Humidity itself has a small but beneficial spectral effect: precipitable
-water shifts the spectrum towards wavelengths that c-Si converts well, which gives a gain of about
-\SI{0.25}{\percent} at all three sites. Dew causes a loss of less than 0.1\% because condensate evaporates within the
-first hours after sunrise.
+Freshwater FPV gives the highest year-1 specific yield, \YieldF~kWh/kWp, $+\GainYieldF$\% relative to land (PR
+\PRF{} against \PRL). Table~\ref{tab:loss} and Fig.~\ref{fig:loss} show where the difference comes from. The
+temperature loss falls from \LossModuleTemperatureL\% to \LossModuleTemperatureF\%, and the soiling loss falls from
+\LossSoilingL\% to \LossSoilingF\% because little dust reaches the water. Part of the gain is lost to higher DC losses
+(cabling and wave-induced mismatch: \LossDcWiringMismatchMotionLidF\% against \LossDcWiringMismatchMotionLidL\%), lower
+availability and a slightly lower POA irradiation. Salt soiling brings the saline plant's soiling loss back to
+\LossSoilingS\%, and its year-1 yield is \YieldS~kWh/kWp ($\GainYieldS$\%). Humidity gives a small spectral gain of
+about 0.24\% at all sites, and dew costs less than 0.1\%.
 
 \begin{table}[!t]
-\caption{Year-1 Loss Breakdown (\% of Preceding Stage)}
+\caption{Year-1 Loss Breakdown (Baseline). Percentages Are Sequential Losses Relative to the Preceding Stage and Are Not
+Directly Additive.}
 \label{tab:loss}
 \centering
 \footnotesize
 \begin{tabular}{@{}lccc@{}}
 \toprule
-Loss stage & Land & FPV fresh & FPV saline \\
+Loss stage (\%) & Land & FPV fresh & FPV saline \\
 \midrule
 Incidence angle (IAM) & \LossIncidenceAngleL & \LossIncidenceAngleF & \LossIncidenceAngleS \\
 Spectral (humidity) & \LossSpectralL & \LossSpectralF & \LossSpectralS \\
@@ -459,56 +550,56 @@ Availability & \LossAvailabilityL & \LossAvailabilityF & \LossAvailabilityS \\
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{losses.pdf}
-\caption{Year-1 loss breakdown. Negative values are gains.}
+\caption{Year-1 sequential loss breakdown (baseline). Negative values are gains.}
 \label{fig:loss}
 \end{figure}
 
-Fig.~\ref{fig:pr} shows the monthly PR. The FPV advantage is largest in the dry, clear months (November--May). In the
-pre-monsoon months the saline plant performs worst: heavy salt deposition under the strong onshore wind meets a
-lack of rain. During the monsoon frequent rain cleans all three arrays and the thermal advantage shrinks under cloudy
-skies, so the gap narrows. Fig.~\ref{fig:soil} shows the daily soiling ratio. Between cleanings, salt deposition on the
-saline plant produces a saw-tooth pattern similar to dust soiling on land, while the freshwater array stays close to
-clean.
+The FPV advantage in monthly PR (Fig.~\ref{fig:pr}) is largest in the dry, clear months. The saline plant performs
+worst in the pre-monsoon months, when strong onshore winds bring salt and little rain falls. Between cleanings, salt
+deposition gives the saline plant a saw-tooth soiling pattern similar to dust soiling on land (Fig.~\ref{fig:soil}).
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{monthly_pr.pdf}
-\caption{Monthly performance ratio.}
+\caption{Monthly performance ratio (baseline).}
 \label{fig:pr}
 \end{figure}
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{soiling.pdf}
-\caption{Daily soiling ratio with rain cleaning, NaCl deliquescence and 15-day manual cleaning.}
+\caption{Daily soiling ratio with rain cleaning, NaCl deliquescence and 15-day manual cleaning (baseline).}
 \label{fig:soil}
 \end{figure}
 
-\subsection{Degradation}
-Table~\ref{tab:deg} and Fig.~\ref{fig:deg} resolve the degradation rate by mechanism. The central result is the
-temperature--humidity term. Floating modules are cooler, but their encapsulant equilibrates at a higher moisture level:
-mean $\RHe$ is \RHencL\% on land, \RHencF\% on freshwater and \RHencS\% on saline water. Through the cubic humidity
-dependence of \eqref{eq:peck}, this cancels the Arrhenius benefit. $R_{\mathrm{TH}}$ is \DegTHL\%/yr on land,
-\DegTHF\%/yr on freshwater and \DegTHS\%/yr on saline water. For hydrolysis-type damage, \emph{cooling by water does not
-translate into slower ageing at a humid site}.
+\subsection{Sensitivity to Dew Optical Loss}\label{sec:dew}
+Varying the dew optical loss from 0 to 6\% changes the year-1 yield difference relative to land by less than
+0.05~percentage point: it ranges from \DewFreshMin\% to \DewFreshMax\% for freshwater FPV and from \DewSalineMin\% to
+\DewSalineMax\% for saline FPV. Dew matters through time of wetness, not as an optical loss.
 
-PID is slightly lower on freshwater (\DegPIDF\%/yr) than on land (\DegPIDL\%/yr), because the higher activation energy
-rewards cooler modules. On saline water it is highest (\DegPIDS\%/yr), because the hygroscopic salt film makes the glass
-conductive at lower RH. Corrosion separates the sites most clearly. The time of wetness grows from \TOWL~h/yr on land to
-\TOWF~h/yr and \TOWS~h/yr over water. Combined with \SI{180}{\milli\gram\per\square\metre\per\day} of chloride
-deposition, this gives $R_{\mathrm{C}}=\DegCorrS$\%/yr on saline water against \DegCorrL\%/yr on land and
-\DegCorrF\%/yr on freshwater. In total, the freshwater plant degrades at \DegTotF\%/yr, close to the land plant
-(\DegTotL\%/yr), while the saline plant degrades at \DegTotS\%/yr.
+\subsection{Module Degradation}
+Table~\ref{tab:deg} and Fig.~\ref{fig:deg} resolve the modelled degradation by mechanism. Floating modules are cooler,
+but their encapsulant equilibrates at a higher moisture level: mean $\RHe$ is \RHencL\%, \RHencF\% and \RHencS\% at the
+land, freshwater and saline plants. Through the cubic humidity term of \eqref{eq:peck}, this cancels the Arrhenius
+benefit of cooling. $R_{\mathrm{TH}}$ is \DegTHL, \DegTHF{} and \DegTHS\%/yr. In this model, therefore, \emph{cooling by
+water does not translate into slower moisture-driven ageing at a humid site}. PID is predicted at \DegPIDL, \DegPIDF{}
+and \DegPIDS\%/yr; the saline value is highest because the salt film makes the glass conductive at lower RH. Corrosion
+separates the sites most clearly. Time of wetness rises from \TOWL~h/yr on land to \TOWF{} and \TOWS~h/yr over water,
+and with \SI{180}{\milli\gram\per\square\metre\per\day} of chloride, $R_{\mathrm{C}}$ reaches \DegCorrS\%/yr at the
+saline plant (\DegCorrL\%/yr on land). Under the baseline assumptions, total degradation is \DegTotL, \DegTotF{} and
+\DegTotS\%/yr.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{degradation.pdf}
-\caption{Annual degradation rate by mechanism. (M): PID-resistant, IEC~61701 severity-6 modules.}
+\caption{Modelled module degradation rate by mechanism (baseline). (M): PID-resistant and salt-mist-hardened modules
+with the assumed factors of Table~\ref{tab:mitstd}.}
 \label{fig:deg}
 \end{figure}
 
 \begin{table*}[!t]
-\caption{Degradation, Lifetime Energy and LCOE (per MWp; M = PID-Resistant, IEC 61701 Severity-6 Modules)}
+\caption{Modelled Module Degradation, Lifetime Energy and LCOE (Baseline, per MWp; M = PID-Resistant and
+Salt-Mist-Hardened Modules With the Assumed Factors of Table~\ref{tab:mitstd})}
 \label{tab:deg}
 \centering
 \footnotesize
@@ -523,61 +614,88 @@ $R_{\mathrm{C}}$ chloride corrosion (\%/yr) & \DegCorrL & \DegCorrF & \DegCorrS 
 \textbf{Total $R$ (\%/yr)} & \textbf{\DegTotL} & \textbf{\DegTotF} & \textbf{\DegTotS} & \textbf{\DegTotLM} & \textbf{\DegTotFM} & \textbf{\DegTotSM} \\
 Time of wetness (h/yr) & \TOWL & \TOWF & \TOWS & \TOWLM & \TOWFM & \TOWSM \\
 Mean encapsulant RH (\%) & \RHencL & \RHencF & \RHencS & \RHencLM & \RHencFM & \RHencSM \\
-Capacity in year 25 (\%) & \CapL & \CapF & \CapS & \CapLM & \CapFM & \CapSM \\
+Module capacity in year 25 (\%) & \CapL & \CapF & \CapS & \CapLM & \CapFM & \CapSM \\
 25-year energy (MWh) & \LifeL & \textbf{\LifeF} & \LifeS & \LifeLM & \textbf{\LifeFM} & \LifeSM \\
 LCOE (INR/kWh) & \LCOEL & \LCOEF & \LCOES & \LCOELM & \LCOEFM & \LCOESM \\
 \bottomrule
 \end{tabular}
 \end{table*}
 
-\subsection{Lifetime Energy, Mitigation and Cost}
-Over 25 years (Fig.~\ref{fig:life}), freshwater FPV delivers \LifeF~MWh/MWp, \GainLifeF\% more than the land plant. The
-saline plant delivers \LifeS~MWh/MWp, which is \GainLifeS\% less, and keeps only \CapS\% of its initial capacity in
-year~25. PID-resistant, IEC~61701 severity-6 modules reduce the saline degradation rate to \DegTotSM\%/yr and raise its
-lifetime energy by \GainLifeSM\%. Even so, the mitigated saline plant does not reach the unmitigated land plant. On land
-and freshwater the same modules lower the rate to \DegTotLM\% and \DegTotFM\%/yr.
-
-With the assumed costs, FPV is more expensive per kWh: \LCOEF~INR/kWh on freshwater and \LCOES~INR/kWh on saline water,
-against \LCOEL~INR/kWh on land. The cost of the floats, mooring and marine-grade balance of system dominates over the
-yield gain. For the saline plant, the mitigated modules (assumed to cost \SI{1.5}{INR/Wp} more) already lower the LCOE
-from \LCOES{} to \LCOESM~INR/kWh. FPV is therefore justified mainly by land savings and, on freshwater, by
-co-benefits: the freshwater plant avoids about \WaterSaved~\si{\cubic\metre} of reservoir evaporation per MWp each year.
+\subsection{Lifetime Energy and Mitigation}
+Over 25 years (Fig.~\ref{fig:life}), freshwater FPV delivers \LifeF~MWh/MWp ($+\GainLifeF$\% against land) and saline
+FPV \LifeS~MWh/MWp ($\GainLifeS$\%). Table~\ref{tab:mitres} evaluates the mitigation options of
+Table~\ref{tab:mitstd} for the saline plant one at a time. PID-resistant modules alone recover \MitPIDRec\% of lifetime
+energy, salt-mist hardening alone \MitSaltRec\%, and both together \MitBothRec\%, still \MitBothvsLand\% below land.
+Only when a lower-permeability glass--glass package is added does the saline plant exceed the land plant
+(\MitGGvsLand\%); with a 7-day cleaning interval as well, it reaches \MitAllvsLand\%. These recoveries follow directly
+from the assumed factors and should be read as what-if results.
 
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{lifetime.pdf}
-\caption{Annual energy over 25 years of operation. Dotted lines: PID-resistant, IEC~61701 severity-6 modules.}
+\caption{Annual energy over 25 years (baseline). Dotted lines: PID-resistant and salt-mist-hardened modules (M).}
 \label{fig:life}
 \end{figure}
 
-\subsection{Sensitivity to Humidity and Salinity}
-For the saline plant, Fig.~\ref{fig:sens} varies the dew-point rise over water from 0 to \SI{2.5}{\kelvin} and scales
-the salt and chloride deposition together from $0.25\times$ to $2\times$ the baseline. The degradation rate ranges from
-\SensDegMin{} to \SensDegMax\%/yr, and 25-year energy ranges from \SensLifeMin{} to \SensLifeMax~MWh/MWp. Each kelvin of
-extra dew point adds about \SensDegPerK\%/yr of degradation at baseline salinity, because the time of wetness grows from
-\SensTOWZero{} to \SensTOWMax~h/yr across the sweep. Across the full ranges swept, salinity moves lifetime energy by
-about \SensSaltSpan~MWh/MWp and moisture by about \SensMoistSpan~MWh/MWp. Salinity also cuts first-year yield by
-\SensYieldLoPct\% between the lowest and highest salt loads, through soiling. At the baseline moisture level
-(+\SI{1.5}{\kelvin}), the saline plant matches the lifetime energy of the land plant only if the salt load falls to
-\BreakEvenSalinity$\times$ the baseline.
+\begin{table*}[!t]
+\caption{Mitigation Options for the Saline FPV Plant (Assumed Effects of Table~\ref{tab:mitstd}; per MWp)}
+\label{tab:mitres}
+\centering
+\footnotesize
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+Option & CAPEX & $R$ & 25-yr energy & Recovery vs. & vs.\ land & LCOE \\
+ & (INR/Wp) & (\%/yr) & (MWh) & standard (\%) & PV (\%) & (INR/kWh) \\
+\midrule
+\TabMitigation
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsection{Thresholds for Salinity and Humidity}\label{sec:thresholds}
+Fig.~\ref{fig:thr}(a) varies the salt-soiling deposition of the saline plant with the chloride load held at baseline.
+Saline FPV out-yields land PV in year 1 only below about \SaltStarYield~\si{\milli\gram\per\square\metre\per\day} of
+salt deposition. Its 25-year energy stays below land at every salt level, and is still $\LifeSalineSaltZeroPct$\% at
+zero salt deposition. Varying the chloride deposition with salt soiling at baseline gives the same picture: the
+degradation rate rises from \DegSalineClZero\%/yr at zero chloride to \DegSalineClMax\%/yr at
+\ClMax~\si{\milli\gram\per\square\metre\per\day}, and no chloride level in 0--400 restores lifetime parity (at zero
+chloride the deficit is $\LifeSalineClZeroPct$\%). Under the baseline assumptions, salt soiling, salt-assisted PID and
+the extra DC and availability losses each contribute to the saline deficit, so no single mitigation of salinity closes
+it. For freshwater FPV, Fig.~\ref{fig:thr}(b) varies the dew-point rise over water. The lifetime advantage over land
+vanishes at $\Delta T_d^* \approx \DTdStar$~K, where the time of wetness reaches about \TOWFreshAtStar~h/yr. Measuring
+the humidity increment over a reservoir is therefore a priority for site assessment.
+
+\begin{figure}[!t]
+\centering
+\includegraphics[width=\columnwidth]{thresholds.pdf}
+\caption{Break-even thresholds relative to land PV. (a) Saline FPV versus salt-soiling deposition (chloride at
+baseline). (b) Freshwater FPV 25-year energy versus dew-point rise over water.}
+\label{fig:thr}
+\end{figure}
+
+\subsection{Joint Sensitivity to Humidity and Salinity}
+Fig.~\ref{fig:sens} varies the dew-point rise over water and scales salt and chloride deposition together for the
+saline plant. The degradation rate ranges from \SensDegMin{} to \SensDegMax\%/yr and the 25-year energy from
+\SensLifeMin{} to \SensLifeMax~MWh/MWp. Each kelvin of dew-point rise adds about \SensDegPerK\%/yr at baseline
+salinity. Across the ranges swept, salinity moves lifetime energy by about \SensSaltSpan~MWh/MWp and moisture by about
+\SensMoistSpan~MWh/MWp.
 
 \begin{figure*}[!t]
 \centering
 \includegraphics[width=\textwidth]{sensitivity.pdf}
-\caption{Sensitivity of the saline FPV plant to the dew-point rise over water and the salt/chloride load: (a) total
-degradation rate and (b) 25-year energy.}
+\caption{Saline FPV plant versus dew-point rise over water and salt/chloride load: (a) total modelled degradation rate
+and (b) 25-year energy.}
 \label{fig:sens}
 \end{figure*}
 
-\subsection{Robustness to Weather Variability}
-To check that the conclusions do not depend on one synthetic year, the three plants were simulated for \NSeeds{}
-independent weather realizations (Table~\ref{tab:ens}, Fig.~\ref{fig:ens}). The land yield varies between
-\EnsYieldLandMin{} and \EnsYieldLandMax~kWh/kWp, but the differences between plants are stable. Freshwater FPV
-outperforms land in \EnsFreshWins{} of \NSeeds{} years, and the standard deviations of the relative differences are below
-0.1 percentage point. The ranking of the plants is the same in every realization.
+\subsection{Weather Variability Versus Parameter Uncertainty}\label{sec:uqres}
+\emph{Weather variability.} Over \NSeeds{} synthetic years (Table~\ref{tab:ens}, Fig.~\ref{fig:ens}), the land yield
+varies between \EnsYieldLandMin{} and \EnsYieldLandMax~kWh/kWp, but the differences between plants are stable, with
+standard deviations of about 0.1~percentage point. This is stochastic robustness conditional on the weather generator,
+not empirical validation.
 
 \begin{table}[!t]
-\caption{Differences From Land PV Over \NSeeds{} Weather Realizations (Mean $\pm$ SD)}
+\caption{Differences From Land PV Over \NSeeds{} Weather Realizations, Baseline Parameters (Mean $\pm$ SD)}
 \label{tab:ens}
 \centering
 \footnotesize
@@ -596,64 +714,132 @@ Degradation rate (\%/yr) & $\EnsDegF \pm \EnsDegSdF$ & $\EnsDegS \pm \EnsDegSdS$
 \begin{figure}[!t]
 \centering
 \includegraphics[width=\columnwidth]{ensemble.pdf}
-\caption{Distribution over \NSeeds{} weather realizations of the year-1 yield and 25-year energy of the FPV plants
-relative to land PV.}
+\caption{Weather variability only: distribution over \NSeeds{} synthetic years of the FPV year-1 yield and 25-year
+energy relative to land PV.}
 \label{fig:ens}
 \end{figure}
+
+\emph{Parameter uncertainty} is much larger (Table~\ref{tab:mc}, Fig.~\ref{fig:unc}). The 95\% interval of the
+freshwater FPV lifetime-energy difference is [\MCLifeLoF, \MCLifeHiF]\%, positive in only \MCLifePosF\% of samples. For
+saline FPV it is [\MCLifeLoS, \MCLifeHiS]\%, negative in all but \MCLifePosS\% of samples; with mitigated modules it is
+[\MCLifeLoSM, \MCLifeHiSM]\%. For the saline difference, the rank correlations (Fig.~\ref{fig:unc}b) show that the land dust deposition and the FPV
+heat-loss coefficients dominate, followed by the saline salt deposition; the corrosion reference rate, the land $U_1$
+and the chloride deposition come next. For the freshwater difference the leading parameters are \RCFNameA{}
+($\rho_s=\RCFValA$), \RCFNameB{} (\RCFValB) and \RCFNameC{} (\RCFValC). The freshwater FPV advantage therefore rests mainly on the floating
+design's cooling and on how dusty the land alternative is, while the saline deficit persists over most of the
+plausible parameter space.
+
+\begin{table}[!t]
+\caption{Parameter Uncertainty: Monte Carlo Over \NParams{} Parameters (\NMC{} Samples, Baseline Weather)}
+\label{tab:mc}
+\centering
+\scriptsize
+\setlength{\tabcolsep}{2.5pt}
+\begin{tabular}{@{}lccc@{}}
+\toprule
+Output & Median & 95\% interval & $P(>0)$ (\%) \\
+\midrule
+\TabMC
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure*}[!t]
+\centering
+\includegraphics[width=\textwidth]{uncertainty.pdf}
+\caption{Parameter uncertainty (\NMC{} Monte Carlo samples). (a) 25-year energy relative to land PV; dots mark the
+median and bars the 95\% interval. (b) The ten parameters with the largest Spearman rank correlation with the saline
+minus land difference in 25-year energy.}
+\label{fig:unc}
+\end{figure*}
+
+\subsection{Economics and Break-Even Values}
+Under the assumed costs, FPV is more expensive per kWh: \LCOEF~INR/kWh (freshwater) and \LCOES~INR/kWh (saline) against
+\LCOEL~INR/kWh on land. In the Monte Carlo, freshwater FPV is more expensive than land PV in \PLcoeF\% of samples
+and saline FPV in \PLcoeS\%. Solving \eqref{eq:lcoe} for parity
+with land PV gives the following break-even values:
+\begin{itemize}
+\item \emph{CAPEX}: \CapexStarF~INR/Wp for freshwater FPV (baseline 45) and \CapexStarS~INR/Wp for saline FPV
+(baseline 52).
+\item \emph{Land cost}: land PV would need a further \LandPremF~INR/Wp of land-related cost to match freshwater FPV,
+and \LandPremS~INR/Wp to match saline FPV.
+\item \emph{Water value}: valuing the avoided evaporation (\WaterSaved~\si{\cubic\metre} per MWp and year) lowers the
+freshwater LCOE to \LCOEWaterTen, \LCOEWaterTwenty{} and \LCOEWaterForty~INR/kWh at 10, 20 and
+40~INR/\si{\cubic\metre}. Parity needs about \WaterStar~INR/\si{\cubic\metre}.
+\end{itemize}
+FPV is thus justified mainly where land is scarce or costly, where reservoir water has a high value, or where FPV
+CAPEX falls substantially. No salinity level makes saline FPV cost-competitive at the assumed CAPEX.
 
 %==========================================================================
 \section{Discussion}\label{sec:discussion}
 
+\subsection{Comparison With Previous Work}
+The baseline thermal advantage of FPV (about 3~K in daytime, 7~K at peak) lies within the range reported for open,
+well-ventilated designs~\cite{liu2018,dorenkamper2021}. It exceeds the advantage measured for less ventilated
+systems~\cite{nysted2024,firat2026}. The Monte Carlo makes this explicit: with FPV heat-loss coefficients at the low end
+of the measured range, the freshwater FPV advantage disappears. The predicted salt-driven increase in degradation is
+larger than the 0.05--0.13 percentage-point effect of salt reported for offshore modules~\cite{ajmal2025}. The
+difference arises because this work also includes salt soiling, salt-assisted PID and chloride corrosion, whose
+calibration remains uncertain. Mannino \emph{et al.}~\cite{mannino2023} found that degradation models need coefficients
+calibrated to the installation environment; that conclusion applies equally to the reference rates used here.
+
 \subsection{Implications for Design and Siting}
-The results separate two questions that are often merged: whether FPV produces more energy in its first year, and whether
-it produces more over its life. For freshwater reservoirs in a hot--humid climate both answers are yes, by \GainYieldF\% and \GainLifeF\%,
-respectively. The lifetime gain comes from the thermal and soiling benefits, not from slower degradation. For saline sites both
-answers are no. A module bill of materials chosen for the environment narrows the lifetime gap but does not close it. These findings suggest the following:
+The analysis separates two questions that are often merged: whether FPV produces more energy in year 1, and whether it
+produces more over its life. For freshwater reservoirs, the baseline answer is yes to both, but the answer depends
+mainly on the float design's heat-loss coefficients and on the humidity increment over the water. For saline sites,
+both baseline answers are no, and the lifetime deficit holds over most of the parameter space. These model-based
+findings suggest the following:
 \begin{itemize}
-\item At saline or near-shore sites, specify PID-resistant modules certified to IEC~61701 severity~6. Glass--glass
-modules with low-permeability encapsulants reduce the encapsulant moisture that drives $R_{\mathrm{TH}}$.
-\item Use negative-pole grounding or night-time PID recovery, marine-grade IP68 connectors and corrosion-resistant
-structures designed to ISO~9223 class C5/CX.
-\item At saline sites, shorten the cleaning interval in the dry, windy pre-monsoon season, when rain does not remove
-salt crusts. Clean with demineralized water to avoid re-depositing salt.
-\item Monitor module temperature, RH at the array, insulation resistance and soiling with reference cells, in line with
-IEC~61724-1~\cite{iec61724}, so that the degradation parameters can be recalibrated with site data.
+\item Verify the heat-loss coefficients of the chosen float design and measure RH and dew point over the water before
+relying on a lifetime gain.
+\item At saline or near-shore sites, select PID-resistant module technology (qualified with IEC~TS~62804-1) and modules
+qualified for salt mist (IEC~61701). Consider low-permeability glass--glass packages, and treat the size of their field
+benefit as uncertain until field data exist.
+\item Use negative-pole grounding or night-time PID recovery, marine-grade connectors and corrosion-resistant
+structures designed for the ISO~9223 corrosivity class of the site.
+\item At saline sites, shorten the cleaning interval in the dry, windy pre-monsoon season, using demineralized water.
+\item Monitor module temperature, RH at the array, insulation resistance and soiling in line with
+IEC~61724-1~\cite{iec61724}, so that the parameters can be recalibrated with field data.
 \end{itemize}
 
-\subsection{Comparison With Previous Work}
-The simulated thermal advantage of FPV, a daytime module-to-air rise lower by about 3~K and peak temperatures lower by
-about 7~K, agrees qualitatively with tropical field measurements~\cite{liu2018,dorenkamper2021}. Those studies also show
-that the size of the effect depends strongly on how ventilated the float design is. The first-year gains of a few
-percent are consistent with simulation studies that attribute the FPV advantage mainly to cooling~\cite{golroodbari2020}.
-The novelty here is the explicit counter-effect of humidity on degradation. A first-year comparison alone would miss it.
-
 \subsection{Limitations}
-The weather is a synthetic typical year built from monthly normals, not a measured year. The over-water microclimate
-parameters ($\alpha$, $\Delta T_d$, $k_v$), the deposition rates and the degradation reference rates are engineering
-assumptions informed by the literature, not site measurements. Absolute values should therefore be read as indicative,
-whereas the differences between plants, which share all common assumptions, are more robust (Table~\ref{tab:ens}). The
-degradation model is linear in time and additive across mechanisms; it does not capture interactions such as the
-saturation of PID or the abrupt failure of corroded interconnects. Structural fatigue of floats and moorings, bird
-soiling, bio-fouling and storm damage are not modeled. The framework accepts measured hourly weather, and future work
-will calibrate it against monitoring data from operating FPV plants in coastal Andhra Pradesh.
+\begin{itemize}
+\item \emph{Validation.} The weather is a synthetic year that reproduces its input normals (Table~\ref{tab:weather})
+but has not been checked against a measured hourly series. No FPV module-temperature or performance data were
+available to validate the thermal, soiling or degradation models.
+\item \emph{Assumed parameters.} The over-water microclimate, the deposition rates, the degradation reference rates and
+the mitigation factors are assumptions. Their uncertainty is propagated, but the ranges themselves are judgements.
+\item \emph{Degradation physics.} The model is linear in time and additive across mechanisms. It does not represent PID
+saturation or recovery, interactions between mechanisms, abrupt failures of corroded interconnects, or the higher
+operating temperature of glass--glass modules.
+\item \emph{System scope.} Float and mooring fatigue, structural corrosion~\cite{xiong2025,feng2025}, storm damage,
+bird soiling and bio-fouling are not modeled.
+\end{itemize}
+The framework accepts measured hourly weather, so the next step is to calibrate it against monitoring data from
+operating FPV plants in coastal Andhra Pradesh.
 
 %==========================================================================
 \section{Conclusion}\label{sec:conclusion}
-A coupled thermal, soiling and degradation model was used to compare land-mounted, freshwater floating and saline
-floating PV for a hot, humid, coastal site in India. Water cooling lowers daytime module temperature by \dTdayF~K and
-gives freshwater FPV the highest first-year yield (+\GainYieldF\%) and lifetime energy (+\GainLifeF\%). The same water
-body raises the humidity at the modules. This cancels the expected temperature benefit for moisture-driven degradation,
-and at saline sites it combines with chloride deposition to make corrosion and PID the decisive mechanisms. Saline FPV
-then degrades at \DegTotS\%/yr and loses \GainLifeS\% of lifetime energy relative to land. Module selection for PID and
-salt-mist resistance is the most effective mitigation. Salinity is a stronger driver than the extra moisture, so site
-selection should give it priority. Assessments of FPV in humid and saline regions should therefore report lifetime
-energy with mechanism-resolved degradation, not first-year yield alone.
+A coupled thermal, soiling and module-degradation model was used to compare land-mounted, freshwater floating and
+saline floating PV for a hot, humid, coastal site in India. Under the baseline assumptions, water cooling lowers
+daytime module temperature by \dTdayF~K and gives freshwater FPV $+\GainYieldF$\% year-1 yield and $+\GainLifeF$\%
+lifetime energy. The same water body raises the humidity at the modules, and in the model this cancels the expected
+temperature benefit for moisture-driven degradation. At the saline site, chloride corrosion and salt-assisted PID raise
+the predicted degradation rate to \DegTotS\%/yr, and lifetime energy falls by $\GainLifeS$\%. Parameter uncertainty is
+much larger than weather variability. The saline lifetime deficit is robust over most of the plausible parameter space,
+whereas the freshwater advantage depends on the floating design's heat-loss coefficients and on the humidity increment
+over the water, and vanishes above a dew-point rise of about \DTdStar~K. Under the baseline parameterization, salinity
+is the dominant driver of the predicted lifetime penalty. Module selection for PID and salt-mist resistance is the most
+effective modelled mitigation, although its size rests on assumed reduction factors. These conclusions are model-based
+and call for field calibration. Assessments of FPV in humid and saline regions should report lifetime energy with
+mechanism-resolved degradation and quantified uncertainty, not first-year yield alone.
 
 \section*{Data Availability}
-The open-source Python implementation (\texttt{fpv\_analysis}), the scenario parameters, the generated result tables
-and the script that produces every number and figure in this paper (\texttt{paper/make\_paper\_assets.py}) are
-available in the project repository
+The open-source Python implementation (\texttt{fpv\_analysis}), its unit tests, the scenario parameters and Monte Carlo
+ranges in machine-readable form (\texttt{paper/generated/parameters.json}), all random seeds, the pinned package
+versions and every generated table are available in the project repository
 \url{https://github.com/subrahmanyamtanala-rgb/floating-solar-photovoltaic-system-for-humid-and-saline-conditions}.
+The single command \texttt{./reproduce.sh} regenerates every number, table and figure in this paper.
 
 \bibliographystyle{IEEEtran}
 \bibliography{references}

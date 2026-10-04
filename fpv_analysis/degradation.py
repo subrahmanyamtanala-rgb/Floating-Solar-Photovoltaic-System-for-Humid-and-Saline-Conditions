@@ -84,7 +84,7 @@ def annual_degradation(hourly: pd.DataFrame, p: DegradationParams) -> Degradatio
     ``poa`` and ``wet`` (dew on the glass) and ``salt_mass`` columns.
     """
     tm = hourly["temp_module"].to_numpy()
-    rh_enc = encapsulant_rh(hourly["rh_surface"].to_numpy(), p.moisture_tau_h)
+    rh_enc = encapsulant_rh(hourly["rh_surface"].to_numpy(), p.moisture_tau_h) * p.encapsulant_moisture_factor
 
     k_th = arrhenius(tm, p.peck_ea, p.ref_temp) * (rh_enc / p.ref_rh) ** p.peck_n
     r_th = p.th_ref_rate * float(np.mean(k_th))
@@ -102,7 +102,7 @@ def annual_degradation(hourly: pd.DataFrame, p: DegradationParams) -> Degradatio
         p.corrosion_ref_rate
         * (tow / p.tow_ref_h)
         * np.sqrt(p.chloride_deposition / p.chloride_ref)
-        * (1.0 - p.iec61701_mitigation)
+        * (1.0 - p.salt_mist_mitigation)
     )
 
     return DegradationResult(

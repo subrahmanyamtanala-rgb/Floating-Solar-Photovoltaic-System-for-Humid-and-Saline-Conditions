@@ -1,0 +1,27 @@
+param,label,low,high,swing,base
+dust_land,Land dust deposition,-5.8534,-1.0192,4.8341,-4.2961
+salt_saline,Saline salt deposition,-2.8004,-6.98,4.1796,-4.2961
+u1_fpv,FPV $U_1$,-7.628,-3.6897,3.9382,-4.2961
+u1_land,Land $U_1$,-2.5388,-4.9046,2.3659,-4.2961
+u0_fpv,FPV $U_0$,-5.8866,-3.548,2.3385,-4.2961
+corr_ref,Corrosion reference rate $R_C^{ref}$,-3.1278,-5.4424,2.3145,-4.2961
+cl_saline,Saline chloride deposition,-3.3299,-5.6411,2.3112,-4.2961
+k_salt,Salt loss coefficient $k_s$,-3.2526,-5.3455,2.0929,-4.2961
+dtd_saline,Dew-point rise $\Delta T_d$ (saline),-3.3535,-5.2145,1.861,-4.2961
+k_dust,Dust loss coefficient $k_d$,-5.0009,-3.5776,1.4232,-4.2961
+u0_land,Land $U_0$,-3.6644,-4.9716,1.3072,-4.2961
+cl_land,Land chloride deposition,-4.5778,-3.8967,0.68117,-4.2961
+pid_ref,PID reference rate $R_{PID}^{ref}$,-4.0047,-4.5846,0.5799,-4.2961
+alpha_saline,Air-water coupling $\alpha$ (saline),-4.5335,-3.9852,0.54831,-4.2961
+cementation,Deliquescence cementation,-4.416,-4.1698,0.24626,-4.2961
+th_ref,Peck reference rate $R_{TH}^{ref}$,-4.2247,-4.3665,0.14179,-4.2961
+dew_loss,Dew optical loss,-4.2702,-4.3091,0.038867,-4.2961
+wind_fpv,Wind factor $k_v$,-4.2961,-4.2961,0,-4.2961
+dtd_fresh,Dew-point rise $\Delta T_d$ (fresh),-4.2961,-4.2961,0,-4.2961
+alpha_fresh,Air-water coupling $\alpha$ (fresh),-4.2961,-4.2961,0,-4.2961
+motion,Wave-motion mismatch,-4.2961,-4.2961,0,-4.2961
+mu_pid,PID mitigation $\mu_{PID}$,-4.2961,-4.2961,0,-4.2961
+mu_salt,Salt-mist mitigation $\mu_C$,-4.2961,-4.2961,0,-4.2961
+capex_land,Land CAPEX (INR/Wp),-4.2961,-4.2961,0,-4.2961
+capex_fresh,FPV fresh CAPEX (INR/Wp),-4.2961,-4.2961,0,-4.2961
+capex_saline,FPV saline CAPEX (INR/Wp),-4.2961,-4.2961,0,-4.2961

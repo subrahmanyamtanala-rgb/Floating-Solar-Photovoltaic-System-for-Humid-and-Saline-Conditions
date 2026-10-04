@@ -91,7 +91,8 @@ def synthetic_weather(site: Site = Site(), climate: pd.DataFrame = VIZAG_CLIMATE
     rh_mean = _daily_series(climate, days, "rh_mean")
     td = dew_point(_daily_series(climate, days, "temp_mean"), rh_mean) + rng.normal(0.0, 0.8, n_days)
     td = np.where(rainy, td + 0.8, td)
-    wind_mean = _daily_series(climate, days, "wind_mean") * rng.lognormal(0.0, 0.2, n_days)
+    # mean-preserving log-normal day-to-day variability
+    wind_mean = _daily_series(climate, days, "wind_mean") * rng.lognormal(-0.5 * 0.2**2, 0.2, n_days)
 
     # --- expand to hourly -------------------------------------------------------
     day_idx = (times.normalize() - times[0].normalize()).days.to_numpy()
@@ -111,11 +112,22 @@ def synthetic_weather(site: Site = Site(), climate: pd.DataFrame = VIZAG_CLIMATE
         np.cos(np.pi * ((hour - 14) % 24) / 15.0),
     )
     temp_air = t_mean[day_idx] + 0.5 * t_range[day_idx] * phase
+    # Holding Td fixed over a day makes the mean of the hourly RH exceed the RH implied by
+    # the daily means (RH is convex in T).  Shift Td per month until the monthly mean RH
+    # matches the normal.
+    month_h = times.month.to_numpy()
+    for _ in range(3):
+        rh = rh_from_dewpoint(temp_air, np.minimum(td[day_idx], temp_air))
+        target = climate.loc[month_h, "rh_mean"].to_numpy(dtype=float)
+        bias = pd.Series(rh - target).groupby(month_h).mean()
+        slope = 17.62 * 243.12 / (243.12 + td) ** 2 * climate.loc[month, "rh_mean"].to_numpy(dtype=float)
+        td = td - bias.loc[month].to_numpy() / slope
     rh = rh_from_dewpoint(temp_air, np.minimum(td[day_idx], temp_air))
 
     # wind: afternoon sea breeze
     breeze = 1.0 + 0.35 * np.sin(np.pi * (hour - 9) / 12.0) * ((hour >= 9) & (hour <= 21))
-    wind = np.clip(wind_mean[day_idx] * breeze * rng.lognormal(0.0, 0.15, len(times)), 0.3, None)
+    breeze = breeze / breeze[:24].mean()  # keep the daily mean equal to the normal
+    wind = np.clip(wind_mean[day_idx] * breeze * rng.lognormal(-0.5 * 0.15**2, 0.15, len(times)), 0.3, None)
 
     # rain falls in a 3-hour afternoon/evening block
     start = rng.integers(13, 20, n_days)

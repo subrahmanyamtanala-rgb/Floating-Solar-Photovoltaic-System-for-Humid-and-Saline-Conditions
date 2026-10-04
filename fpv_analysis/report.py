@@ -114,7 +114,8 @@ temperature {weather['temp_air'].mean():.1f} °C, mean RH {weather['rh'].mean():
    Total degradation is {saline['deg_total_pct_yr']:.2f} %/yr against {land['deg_total_pct_yr']:.2f} %/yr on land and
    {fresh['deg_total_pct_yr']:.2f} %/yr on freshwater. After 25 years a saline plant keeps {saline['year25_capacity_pct']:.1f} % of
    its capacity.
-6. **Module choice is the main lever in saline sites.** PID-resistant, IEC 61701 severity-6 modules cut saline FPV degradation
+6. **Module choice is the main modelled lever in saline sites.** PID-resistant (IEC TS 62804-1) and salt-mist-hardened
+   (IEC 61701) modules, with assumed reduction factors of 90 % and 50 %, cut saline FPV degradation
    to {sal_mit['deg_total_pct_yr']:.2f} %/yr and raise 25-year energy by
    {_pct(sal_mit['lifetime_energy_mwh'], saline['lifetime_energy_mwh'])} for an assumed +1.5 INR/Wp. LCOE goes from
    {saline['lcoe_inr_kwh']:.2f} to {sal_mit['lcoe_inr_kwh']:.2f} INR/kWh.
@@ -180,7 +181,8 @@ The dew-point rise over water stands for extra humidity. Salinity scales salt so
 
 ## 7. Recommendations for humid and saline sites
 
-* Specify **PID-resistant modules** and **IEC 61701 severity 6 (salt mist)** and **IEC 62716 (ammonia)** certification. Use
+* Specify **PID-resistant modules** qualified with **IEC TS 62804-1**, and **salt-mist** qualification to **IEC 61701**
+  (severity 6 for marine sites). Use
   glass-glass modules with POE encapsulant where the budget allows, to limit moisture ingress.
 * Use negative-pole grounding or night-time PID recovery on inverters. Choose IP68, marine-grade connectors and junction boxes.
 * Use **HDPE floats, stainless steel 316 / hot-dip galvanised or aluminium fasteners**, and design to ISO 9223 class C5/CX at

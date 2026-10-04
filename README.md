@@ -9,7 +9,8 @@ An open, reproducible simulation framework that compares three 1 MWp plants in a
 | `fpv_fresh` | Floating PV on a freshwater reservoir |
 | `fpv_saline` | Floating PV on saline / near-shore water (lagoon, salt pan, harbour) |
 
-Each plant is also simulated with **PID-resistant, IEC 61701 salt-mist-certified modules** (`*_mitigated`).
+Each plant is also simulated with **PID-resistant (IEC TS 62804-1) and salt-mist-hardened (IEC 61701) modules**
+(`*_mitigated`).
 
 The study looks at how water cooling, high humidity and sea salt act together on:
 
@@ -19,23 +20,35 @@ The study looks at how water cooling, high humidity and sea salt act together on
 
 The full generated report, with tables and figures, is in **[`results/REPORT.md`](results/REPORT.md)**.
 
-An IEEE Transactions-format manuscript based on these results is in **[`paper/main.pdf`](paper/main.pdf)**. Its
-LaTeX source is [`paper/main.tex`](paper/main.tex); see [`paper/README.md`](paper/README.md) to rebuild it.
+An IEEE Transactions-format manuscript based on these results is in **[`paper/main.pdf`](paper/main.pdf)**, revised
+after peer review; the point-by-point reply is in [`paper/response_to_reviewers.pdf`](paper/response_to_reviewers.pdf).
+See [`paper/README.md`](paper/README.md) to rebuild them.
 
 ## Headline results (synthetic Visakhapatnam year, seed 42)
 
 | | Land PV | FPV freshwater | FPV saline |
 |---|---|---|---|
-| Specific yield, year 1 (kWh/kWp) | 1611 | **1636** | 1587 |
-| Performance ratio | 0.821 | **0.838** | 0.813 |
-| Mean daytime module temperature (°C) | 38.8 | 36.1 | 35.8 |
-| Degradation (%/yr) | 0.93 | **0.89** | 1.24 |
-| Degradation with mitigated modules (%/yr) | 0.73 | 0.71 | 0.88 |
-| 25-year energy (MWh per MWp) | 36 093 | **36 838** | 34 313 |
+| Specific yield, year 1 (kWh/kWp) | 1608 | **1634** | 1590 |
+| Performance ratio | 0.819 | **0.837** | 0.814 |
+| Mean daytime module temperature (°C) | 39.5 | 36.5 | 36.2 |
+| Module degradation (%/yr) | 0.88 | **0.84** | 1.16 |
+| Degradation with PID-resistant + salt-mist-hardened modules (%/yr) | 0.70 | 0.68 | 0.83 |
+| 25-year energy (MWh per MWp) | 36 233 | **37 004** | 34 677 |
 
-Floating PV runs cooler and yields more. Over the life of the plant, though, the more humid air over the water and, at
-saline sites, chloride corrosion and salt-assisted PID take back part or all of that gain. Module choice (PID-resistant,
-IEC 61701 severity 6) is the main lever for saline sites.
+These are model predictions under assumed baseline parameters. A 1,000-sample Monte Carlo over 26 uncertain
+parameters gives the 25-year energy difference relative to land PV:
+
+| | Median | 95 % interval | P(better than land) |
+|---|---|---|---|
+| FPV freshwater | +1.3 % | −3.6 % to +6.4 % | 73 % |
+| FPV saline | −4.9 % | −11.2 % to +0.7 % | 4 % |
+
+Floating PV runs cooler and, at baseline, yields more. Over the plant's life, though, the more humid air over the
+water and, at saline sites, chloride corrosion and salt-assisted PID take back part or all of that gain. The saline
+deficit is robust; the freshwater advantage depends mainly on the float design's heat-loss coefficients and on how dusty
+the land alternative is. Module choice (PID-resistant modules qualified with IEC TS 62804-1, plus salt-mist
+qualification to IEC 61701) is the main modelled lever for saline sites. The degradation reductions assigned to these
+modules are model assumptions; certification alone does not establish them.
 
 ![Module temperature](results/figures/fig02_module_temperature.png)
 ![Degradation](results/figures/fig06_degradation.png)
@@ -46,7 +59,8 @@ IEC 61701 severity 6) is the main lever for saline sites.
 pip install -r requirements.txt
 python -m fpv_analysis                  # synthetic weather -> results/
 python -m fpv_analysis --weather my_site.csv --out results_my_site
-python -m pytest -q                     # 17 tests
+python -m pytest -q                     # 22 tests
+./reproduce.sh                          # everything, including the paper (about 3 minutes)
 ```
 
 A full run takes about 5 seconds and writes:
@@ -113,6 +127,8 @@ weather ──► microclimate over water ──► sun position ──► Erbs 
 | `economics.py` | LCOE, evaporation savings |
 | `simulation.py` | Hourly chain, loss accounting, KPIs |
 | `sensitivity.py` | Dew-point rise × salinity sweep |
+| `uncertainty.py` | Monte Carlo over 26 parameters, rank correlations, one-at-a-time swings |
+| `studies.py` | Salt/chloride/humidity thresholds, dew-loss sensitivity, mitigation matrix, LCOE break-even, weather check |
 | `plots.py`, `report.py`, `cli.py` | Figures, Markdown report, command line |
 
 ## Key parameters and sources
@@ -148,5 +164,6 @@ absolute values.
 * Lee, M., Panchula, A. (2016). Spectral correction for photovoltaic module performance based on air mass and precipitable water. *IEEE PVSC*.
 * Gueymard, C. (1994). Analysis of monthly average atmospheric precipitable water and turbidity in Canada and northern United States. *Solar Energy* 53, 57-71.
 * ISO 9223:2012. Corrosion of metals and alloys - Corrosivity of atmospheres.
-* IEC 61701:2020. Photovoltaic modules - Salt mist corrosion testing. IEC TS 62804-1 (PID).
+* IEC 61701:2020. Photovoltaic modules - Salt mist corrosion testing.
+* IEC TS 62804-1:2025. Photovoltaic modules - Test methods for the detection of potential-induced degradation - Part 1: Crystalline silicon.
 * Dobos, A. P. (2014). PVWatts Version 5 Manual. NREL/TP-6A20-62641.

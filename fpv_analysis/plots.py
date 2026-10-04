@@ -207,7 +207,7 @@ def lifetime(results, out: Path) -> Path:
         mit = next((m for m in results if m.scenario.key == r.scenario.key + "_mitigated"), None)
         if mit is not None:
             ax.plot(years, mit.lifetime_kwh / 1000.0, color=SERIES[i], linestyle=":", linewidth=1.6)
-    ax.plot([], [], color=NEUTRAL, linestyle=":", linewidth=1.6, label="Same, with PID/salt-mist resistant modules")
+    ax.plot([], [], color=NEUTRAL, linestyle=":", linewidth=1.6, label="Same, with PID-resistant + salt-mist-hardened modules")
     ax.set_xlabel("Year of operation")
     ax.set_ylabel("MWh/yr per MWp")
     ax.set_title("Annual energy over 25 years")

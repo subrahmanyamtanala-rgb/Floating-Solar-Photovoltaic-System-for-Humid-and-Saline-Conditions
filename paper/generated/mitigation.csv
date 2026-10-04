@@ -1,0 +1,7 @@
+option,deg_total_pct_yr,specific_yield_kwh_kwp,lifetime_energy_mwh,recovery_pct,vs_land_pct,capex_per_wp,lcoe_inr_kwh
+Standard module,1.1623,1590.3,34677,0,-4.2961,52,4.4344
+PID-resistant,0.97715,1590.3,35427,2.1648,-2.2243,52.5,4.4079
+Salt-mist-hardened,1.0138,1590.3,35277,1.7316,-2.6389,53,4.4547
+PID + salt-mist,0.82861,1590.3,36045,3.9457,-0.51994,53.5,4.4271
+PID + salt-mist + glass-glass,0.65318,1590.3,36792,6.1013,1.5431,55.5,4.5033
+PID + salt-mist + glass-glass + 7-day cleaning,0.65134,1617.1,37421,7.9128,3.2768,55.5,4.5429

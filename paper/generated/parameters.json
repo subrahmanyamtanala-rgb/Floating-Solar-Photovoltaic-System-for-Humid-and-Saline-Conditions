@@ -1,0 +1,656 @@
+{
+  "weather": {
+    "generator": "fpv_analysis.climate.synthetic_weather",
+    "baseline_seed": 42,
+    "ensemble_seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10,
+      11,
+      12,
+      13,
+      14,
+      15,
+      16,
+      17,
+      18,
+      19,
+      20
+    ]
+  },
+  "scenarios": {
+    "land": {
+      "key": "land",
+      "label": "Land-mounted PV (coastal)",
+      "system": {
+        "dc_kwp": 1000.0,
+        "dc_ac_ratio": 1.2,
+        "tilt": 15.0,
+        "azimuth": 180.0,
+        "gamma_pdc": -0.0035,
+        "inverter_eff_nom": 0.98,
+        "wiring_loss": 0.015,
+        "mismatch_loss": 0.01,
+        "motion_loss": 0.0,
+        "lid_loss": 0.01,
+        "availability": 0.99,
+        "dew_optical_loss": 0.04
+      },
+      "microclimate": {
+        "air_coupling": 0.0,
+        "dewpoint_offset": 0.0,
+        "wind_factor": 1.0,
+        "albedo": 0.2
+      },
+      "thermal": {
+        "u0": 25.0,
+        "u1": 6.84,
+        "night_sky_loss": 40.0
+      },
+      "soiling": {
+        "dust_rate": 0.15,
+        "salt_rate": 0.015,
+        "k_dust": 0.035,
+        "k_salt": 0.06,
+        "min_ratio": 0.7,
+        "rain_threshold": 2.0,
+        "rain_clean_dust": 0.8,
+        "rain_clean_salt": 0.95,
+        "deliquescence_rh": 75.0,
+        "cementation": 0.5,
+        "cleaning_interval_days": 15,
+        "cleaning_efficiency": 0.95
+      },
+      "degradation": {
+        "base_rate": 0.3,
+        "th_ref_rate": 0.1,
+        "peck_ea": 0.79,
+        "peck_n": 3.0,
+        "ref_temp": 25.0,
+        "ref_rh": 60.0,
+        "moisture_tau_h": 48.0,
+        "pid_ref_rate": 0.06,
+        "pid_ea": 0.9,
+        "pid_rh50": 70.0,
+        "pid_salt_shift": 15.0,
+        "pid_mitigation": 0.0,
+        "corrosion_ref_rate": 0.1,
+        "tow_ref_h": 2500.0,
+        "chloride_deposition": 30.0,
+        "chloride_ref": 60.0,
+        "salt_mist_mitigation": 0.0,
+        "encapsulant_moisture_factor": 1.0
+      },
+      "economics": {
+        "capex_per_wp": 35.0,
+        "opex_per_kwp_yr": 450.0,
+        "opex_escalation": 0.05,
+        "discount_rate": 0.09,
+        "lifetime_years": 25,
+        "covered_area_m2_per_kwp": 10.0,
+        "evaporation_mm_yr": 1800.0,
+        "evaporation_reduction": 0.0
+      }
+    },
+    "fpv_fresh": {
+      "key": "fpv_fresh",
+      "label": "Floating PV (freshwater reservoir)",
+      "system": {
+        "dc_kwp": 1000.0,
+        "dc_ac_ratio": 1.2,
+        "tilt": 12.0,
+        "azimuth": 180.0,
+        "gamma_pdc": -0.0035,
+        "inverter_eff_nom": 0.98,
+        "wiring_loss": 0.02,
+        "mismatch_loss": 0.01,
+        "motion_loss": 0.007,
+        "lid_loss": 0.01,
+        "availability": 0.985,
+        "dew_optical_loss": 0.04
+      },
+      "microclimate": {
+        "air_coupling": 0.25,
+        "dewpoint_offset": 1.0,
+        "wind_factor": 1.15,
+        "albedo": 0.07
+      },
+      "thermal": {
+        "u0": 35.0,
+        "u1": 8.0,
+        "night_sky_loss": 40.0
+      },
+      "soiling": {
+        "dust_rate": 0.04,
+        "salt_rate": 0.01,
+        "k_dust": 0.035,
+        "k_salt": 0.06,
+        "min_ratio": 0.7,
+        "rain_threshold": 2.0,
+        "rain_clean_dust": 0.8,
+        "rain_clean_salt": 0.95,
+        "deliquescence_rh": 75.0,
+        "cementation": 0.5,
+        "cleaning_interval_days": 15,
+        "cleaning_efficiency": 0.95
+      },
+      "degradation": {
+        "base_rate": 0.3,
+        "th_ref_rate": 0.1,
+        "peck_ea": 0.79,
+        "peck_n": 3.0,
+        "ref_temp": 25.0,
+        "ref_rh": 60.0,
+        "moisture_tau_h": 48.0,
+        "pid_ref_rate": 0.06,
+        "pid_ea": 0.9,
+        "pid_rh50": 70.0,
+        "pid_salt_shift": 15.0,
+        "pid_mitigation": 0.0,
+        "corrosion_ref_rate": 0.1,
+        "tow_ref_h": 2500.0,
+        "chloride_deposition": 8.0,
+        "chloride_ref": 60.0,
+        "salt_mist_mitigation": 0.0,
+        "encapsulant_moisture_factor": 1.0
+      },
+      "economics": {
+        "capex_per_wp": 45.0,
+        "opex_per_kwp_yr": 550.0,
+        "opex_escalation": 0.05,
+        "discount_rate": 0.09,
+        "lifetime_years": 25,
+        "covered_area_m2_per_kwp": 10.0,
+        "evaporation_mm_yr": 1800.0,
+        "evaporation_reduction": 0.65
+      }
+    },
+    "fpv_saline": {
+      "key": "fpv_saline",
+      "label": "Floating PV (saline / near-shore)",
+      "system": {
+        "dc_kwp": 1000.0,
+        "dc_ac_ratio": 1.2,
+        "tilt": 12.0,
+        "azimuth": 180.0,
+        "gamma_pdc": -0.0035,
+        "inverter_eff_nom": 0.98,
+        "wiring_loss": 0.02,
+        "mismatch_loss": 0.01,
+        "motion_loss": 0.01,
+        "lid_loss": 0.01,
+        "availability": 0.98,
+        "dew_optical_loss": 0.04
+      },
+      "microclimate": {
+        "air_coupling": 0.3,
+        "dewpoint_offset": 1.5,
+        "wind_factor": 1.25,
+        "albedo": 0.07
+      },
+      "thermal": {
+        "u0": 35.0,
+        "u1": 8.0,
+        "night_sky_loss": 40.0
+      },
+      "soiling": {
+        "dust_rate": 0.03,
+        "salt_rate": 0.06,
+        "k_dust": 0.035,
+        "k_salt": 0.06,
+        "min_ratio": 0.7,
+        "rain_threshold": 2.0,
+        "rain_clean_dust": 0.8,
+        "rain_clean_salt": 0.95,
+        "deliquescence_rh": 75.0,
+        "cementation": 0.5,
+        "cleaning_interval_days": 15,
+        "cleaning_efficiency": 0.95
+      },
+      "degradation": {
+        "base_rate": 0.3,
+        "th_ref_rate": 0.1,
+        "peck_ea": 0.79,
+        "peck_n": 3.0,
+        "ref_temp": 25.0,
+        "ref_rh": 60.0,
+        "moisture_tau_h": 48.0,
+        "pid_ref_rate": 0.06,
+        "pid_ea": 0.9,
+        "pid_rh50": 70.0,
+        "pid_salt_shift": 15.0,
+        "pid_mitigation": 0.0,
+        "corrosion_ref_rate": 0.1,
+        "tow_ref_h": 2500.0,
+        "chloride_deposition": 180.0,
+        "chloride_ref": 60.0,
+        "salt_mist_mitigation": 0.0,
+        "encapsulant_moisture_factor": 1.0
+      },
+      "economics": {
+        "capex_per_wp": 52.0,
+        "opex_per_kwp_yr": 750.0,
+        "opex_escalation": 0.05,
+        "discount_rate": 0.09,
+        "lifetime_years": 25,
+        "covered_area_m2_per_kwp": 10.0,
+        "evaporation_mm_yr": 1800.0,
+        "evaporation_reduction": 0.0
+      }
+    },
+    "land_mitigated": {
+      "key": "land_mitigated",
+      "label": "Land-mounted PV (coastal) + PID-resistant, salt-mist-hardened",
+      "system": {
+        "dc_kwp": 1000.0,
+        "dc_ac_ratio": 1.2,
+        "tilt": 15.0,
+        "azimuth": 180.0,
+        "gamma_pdc": -0.0035,
+        "inverter_eff_nom": 0.98,
+        "wiring_loss": 0.015,
+        "mismatch_loss": 0.01,
+        "motion_loss": 0.0,
+        "lid_loss": 0.01,
+        "availability": 0.99,
+        "dew_optical_loss": 0.04
+      },
+      "microclimate": {
+        "air_coupling": 0.0,
+        "dewpoint_offset": 0.0,
+        "wind_factor": 1.0,
+        "albedo": 0.2
+      },
+      "thermal": {
+        "u0": 25.0,
+        "u1": 6.84,
+        "night_sky_loss": 40.0
+      },
+      "soiling": {
+        "dust_rate": 0.15,
+        "salt_rate": 0.015,
+        "k_dust": 0.035,
+        "k_salt": 0.06,
+        "min_ratio": 0.7,
+        "rain_threshold": 2.0,
+        "rain_clean_dust": 0.8,
+        "rain_clean_salt": 0.95,
+        "deliquescence_rh": 75.0,
+        "cementation": 0.5,
+        "cleaning_interval_days": 15,
+        "cleaning_efficiency": 0.95
+      },
+      "degradation": {
+        "base_rate": 0.3,
+        "th_ref_rate": 0.1,
+        "peck_ea": 0.79,
+        "peck_n": 3.0,
+        "ref_temp": 25.0,
+        "ref_rh": 60.0,
+        "moisture_tau_h": 48.0,
+        "pid_ref_rate": 0.06,
+        "pid_ea": 0.9,
+        "pid_rh50": 70.0,
+        "pid_salt_shift": 15.0,
+        "pid_mitigation": 0.9,
+        "corrosion_ref_rate": 0.1,
+        "tow_ref_h": 2500.0,
+        "chloride_deposition": 30.0,
+        "chloride_ref": 60.0,
+        "salt_mist_mitigation": 0.5,
+        "encapsulant_moisture_factor": 1.0
+      },
+      "economics": {
+        "capex_per_wp": 36.5,
+        "opex_per_kwp_yr": 450.0,
+        "opex_escalation": 0.05,
+        "discount_rate": 0.09,
+        "lifetime_years": 25,
+        "covered_area_m2_per_kwp": 10.0,
+        "evaporation_mm_yr": 1800.0,
+        "evaporation_reduction": 0.0
+      }
+    },
+    "fpv_fresh_mitigated": {
+      "key": "fpv_fresh_mitigated",
+      "label": "Floating PV (freshwater reservoir) + PID-resistant, salt-mist-hardened",
+      "system": {
+        "dc_kwp": 1000.0,
+        "dc_ac_ratio": 1.2,
+        "tilt": 12.0,
+        "azimuth": 180.0,
+        "gamma_pdc": -0.0035,
+        "inverter_eff_nom": 0.98,
+        "wiring_loss": 0.02,
+        "mismatch_loss": 0.01,
+        "motion_loss": 0.007,
+        "lid_loss": 0.01,
+        "availability": 0.985,
+        "dew_optical_loss": 0.04
+      },
+      "microclimate": {
+        "air_coupling": 0.25,
+        "dewpoint_offset": 1.0,
+        "wind_factor": 1.15,
+        "albedo": 0.07
+      },
+      "thermal": {
+        "u0": 35.0,
+        "u1": 8.0,
+        "night_sky_loss": 40.0
+      },
+      "soiling": {
+        "dust_rate": 0.04,
+        "salt_rate": 0.01,
+        "k_dust": 0.035,
+        "k_salt": 0.06,
+        "min_ratio": 0.7,
+        "rain_threshold": 2.0,
+        "rain_clean_dust": 0.8,
+        "rain_clean_salt": 0.95,
+        "deliquescence_rh": 75.0,
+        "cementation": 0.5,
+        "cleaning_interval_days": 15,
+        "cleaning_efficiency": 0.95
+      },
+      "degradation": {
+        "base_rate": 0.3,
+        "th_ref_rate": 0.1,
+        "peck_ea": 0.79,
+        "peck_n": 3.0,
+        "ref_temp": 25.0,
+        "ref_rh": 60.0,
+        "moisture_tau_h": 48.0,
+        "pid_ref_rate": 0.06,
+        "pid_ea": 0.9,
+        "pid_rh50": 70.0,
+        "pid_salt_shift": 15.0,
+        "pid_mitigation": 0.9,
+        "corrosion_ref_rate": 0.1,
+        "tow_ref_h": 2500.0,
+        "chloride_deposition": 8.0,
+        "chloride_ref": 60.0,
+        "salt_mist_mitigation": 0.5,
+        "encapsulant_moisture_factor": 1.0
+      },
+      "economics": {
+        "capex_per_wp": 46.5,
+        "opex_per_kwp_yr": 550.0,
+        "opex_escalation": 0.05,
+        "discount_rate": 0.09,
+        "lifetime_years": 25,
+        "covered_area_m2_per_kwp": 10.0,
+        "evaporation_mm_yr": 1800.0,
+        "evaporation_reduction": 0.65
+      }
+    },
+    "fpv_saline_mitigated": {
+      "key": "fpv_saline_mitigated",
+      "label": "Floating PV (saline / near-shore) + PID-resistant, salt-mist-hardened",
+      "system": {
+        "dc_kwp": 1000.0,
+        "dc_ac_ratio": 1.2,
+        "tilt": 12.0,
+        "azimuth": 180.0,
+        "gamma_pdc": -0.0035,
+        "inverter_eff_nom": 0.98,
+        "wiring_loss": 0.02,
+        "mismatch_loss": 0.01,
+        "motion_loss": 0.01,
+        "lid_loss": 0.01,
+        "availability": 0.98,
+        "dew_optical_loss": 0.04
+      },
+      "microclimate": {
+        "air_coupling": 0.3,
+        "dewpoint_offset": 1.5,
+        "wind_factor": 1.25,
+        "albedo": 0.07
+      },
+      "thermal": {
+        "u0": 35.0,
+        "u1": 8.0,
+        "night_sky_loss": 40.0
+      },
+      "soiling": {
+        "dust_rate": 0.03,
+        "salt_rate": 0.06,
+        "k_dust": 0.035,
+        "k_salt": 0.06,
+        "min_ratio": 0.7,
+        "rain_threshold": 2.0,
+        "rain_clean_dust": 0.8,
+        "rain_clean_salt": 0.95,
+        "deliquescence_rh": 75.0,
+        "cementation": 0.5,
+        "cleaning_interval_days": 15,
+        "cleaning_efficiency": 0.95
+      },
+      "degradation": {
+        "base_rate": 0.3,
+        "th_ref_rate": 0.1,
+        "peck_ea": 0.79,
+        "peck_n": 3.0,
+        "ref_temp": 25.0,
+        "ref_rh": 60.0,
+        "moisture_tau_h": 48.0,
+        "pid_ref_rate": 0.06,
+        "pid_ea": 0.9,
+        "pid_rh50": 70.0,
+        "pid_salt_shift": 15.0,
+        "pid_mitigation": 0.9,
+        "corrosion_ref_rate": 0.1,
+        "tow_ref_h": 2500.0,
+        "chloride_deposition": 180.0,
+        "chloride_ref": 60.0,
+        "salt_mist_mitigation": 0.5,
+        "encapsulant_moisture_factor": 1.0
+      },
+      "economics": {
+        "capex_per_wp": 53.5,
+        "opex_per_kwp_yr": 750.0,
+        "opex_escalation": 0.05,
+        "discount_rate": 0.09,
+        "lifetime_years": 25,
+        "covered_area_m2_per_kwp": 10.0,
+        "evaporation_mm_yr": 1800.0,
+        "evaporation_reduction": 0.0
+      }
+    }
+  },
+  "monte_carlo": {
+    "n": 1000,
+    "seed": 2024,
+    "parameters": [
+      {
+        "name": "th_ref",
+        "label": "Peck reference rate $R_{TH}^{ref}$",
+        "low": 0.06,
+        "high": 0.14,
+        "log": false
+      },
+      {
+        "name": "pid_ref",
+        "label": "PID reference rate $R_{PID}^{ref}$",
+        "low": 0.03,
+        "high": 0.09,
+        "log": false
+      },
+      {
+        "name": "corr_ref",
+        "label": "Corrosion reference rate $R_C^{ref}$",
+        "low": 0.05,
+        "high": 0.15,
+        "log": false
+      },
+      {
+        "name": "dew_loss",
+        "label": "Dew optical loss",
+        "low": 0.0,
+        "high": 0.06,
+        "log": false
+      },
+      {
+        "name": "k_dust",
+        "label": "Dust loss coefficient $k_d$",
+        "low": 0.025,
+        "high": 0.045,
+        "log": false
+      },
+      {
+        "name": "k_salt",
+        "label": "Salt loss coefficient $k_s$",
+        "low": 0.03,
+        "high": 0.09,
+        "log": false
+      },
+      {
+        "name": "cementation",
+        "label": "Deliquescence cementation",
+        "low": 0.25,
+        "high": 0.75,
+        "log": false
+      },
+      {
+        "name": "u0_land",
+        "label": "Land $U_0$",
+        "low": 22.0,
+        "high": 29.0,
+        "log": false
+      },
+      {
+        "name": "u1_land",
+        "label": "Land $U_1$",
+        "low": 4.5,
+        "high": 8.0,
+        "log": false
+      },
+      {
+        "name": "dust_land",
+        "label": "Land dust deposition",
+        "low": 0.5,
+        "high": 2.0,
+        "log": true
+      },
+      {
+        "name": "cl_land",
+        "label": "Land chloride deposition",
+        "low": 0.5,
+        "high": 2.0,
+        "log": true
+      },
+      {
+        "name": "u0_fpv",
+        "label": "FPV $U_0$",
+        "low": 22.0,
+        "high": 45.0,
+        "log": false
+      },
+      {
+        "name": "u1_fpv",
+        "label": "FPV $U_1$",
+        "low": 2.5,
+        "high": 10.0,
+        "log": false
+      },
+      {
+        "name": "wind_fpv",
+        "label": "Wind factor $k_v$",
+        "low": 1.0,
+        "high": 1.35,
+        "log": false
+      },
+      {
+        "name": "motion",
+        "label": "Wave-motion mismatch",
+        "low": 0.003,
+        "high": 0.015,
+        "log": false
+      },
+      {
+        "name": "alpha_fresh",
+        "label": "Air-water coupling $\\alpha$ (fresh)",
+        "low": 0.1,
+        "high": 0.4,
+        "log": false
+      },
+      {
+        "name": "dtd_fresh",
+        "label": "Dew-point rise $\\Delta T_d$ (fresh)",
+        "low": 0.5,
+        "high": 1.5,
+        "log": false
+      },
+      {
+        "name": "alpha_saline",
+        "label": "Air-water coupling $\\alpha$ (saline)",
+        "low": 0.15,
+        "high": 0.45,
+        "log": false
+      },
+      {
+        "name": "dtd_saline",
+        "label": "Dew-point rise $\\Delta T_d$ (saline)",
+        "low": 1.0,
+        "high": 2.0,
+        "log": false
+      },
+      {
+        "name": "salt_saline",
+        "label": "Saline salt deposition",
+        "low": 0.5,
+        "high": 2.0,
+        "log": true
+      },
+      {
+        "name": "cl_saline",
+        "label": "Saline chloride deposition",
+        "low": 0.5,
+        "high": 2.0,
+        "log": true
+      },
+      {
+        "name": "mu_pid",
+        "label": "PID mitigation $\\mu_{PID}$",
+        "low": 0.5,
+        "high": 0.95,
+        "log": false
+      },
+      {
+        "name": "mu_salt",
+        "label": "Salt-mist mitigation $\\mu_C$",
+        "low": 0.2,
+        "high": 0.7,
+        "log": false
+      },
+      {
+        "name": "capex_land",
+        "label": "Land CAPEX (INR/Wp)",
+        "low": 30.0,
+        "high": 40.0,
+        "log": false
+      },
+      {
+        "name": "capex_fresh",
+        "label": "FPV fresh CAPEX (INR/Wp)",
+        "low": 38.0,
+        "high": 52.0,
+        "log": false
+      },
+      {
+        "name": "capex_saline",
+        "label": "FPV saline CAPEX (INR/Wp)",
+        "low": 44.0,
+        "high": 60.0,
+        "log": false
+      }
+    ]
+  }
+}

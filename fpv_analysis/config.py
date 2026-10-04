@@ -84,13 +84,17 @@ class DegradationParams:
     pid_ea: float = 0.90  # eV (Hacke et al.)
     pid_rh50: float = 70.0  # RH at which the glass surface becomes conductive
     pid_salt_shift: float = 15.0  # RH50 reduction for a full salt film, % RH
-    pid_mitigation: float = 0.0  # 0 = standard modules, 0.9 = PID-resistant
+    # Reduction factors for module-level mitigations.  These are MODEL ASSUMPTIONS:
+    # passing IEC TS 62804-1 (PID) or IEC 61701 (salt mist) qualification does not by
+    # itself establish a numerical reduction of field degradation.
+    pid_mitigation: float = 0.0  # 0 = standard; e.g. 0.9 for PID-resistant cell/encapsulant
     # Salt-mist / chloride corrosion of cells, ribbons, junction boxes
     corrosion_ref_rate: float = 0.10  # %/yr at TOW_ref and Cl_ref
     tow_ref_h: float = 2500.0  # time of wetness reference, h/yr (ISO 9223 class T4)
     chloride_deposition: float = 30.0  # mg Cl/m2/day at the site
     chloride_ref: float = 60.0  # mg/m2/day (ISO 9223 S1/S2 boundary)
-    iec61701_mitigation: float = 0.0  # 0.5 for IEC 61701 severity-6 modules
+    salt_mist_mitigation: float = 0.0  # 0 = standard; e.g. 0.5 for salt-mist-hardened modules
+    encapsulant_moisture_factor: float = 1.0  # <1 for low-permeability (glass-glass, POE) packages
 
 
 @dataclass(frozen=True)
@@ -186,15 +190,59 @@ def default_scenarios() -> list[Scenario]:
     return [land, fpv_fresh, fpv_saline]
 
 
-def with_mitigation(scenario: Scenario) -> Scenario:
-    """Same plant built with PID-resistant, IEC 61701 (severity 6) modules."""
+# Cost adders (INR/Wp, INR/kWp/yr) for the mitigation options - illustrative assumptions.
+COST_PID = 0.5
+COST_SALT_MIST = 1.0
+COST_GLASS_GLASS = 2.0
+COST_EXTRA_CLEANING = 100.0
 
-    deg = replace(scenario.degradation, pid_mitigation=0.9, iec61701_mitigation=0.5)
-    econ = replace(scenario.economics, capex_per_wp=scenario.economics.capex_per_wp + 1.5)
+
+def with_mitigation(
+    scenario: Scenario,
+    pid: bool = True,
+    salt_mist: bool = True,
+    glass_glass: bool = False,
+    cleaning_interval_days: int | None = None,
+    mu_pid: float = 0.9,
+    mu_salt: float = 0.5,
+    moisture_factor: float = 0.8,
+    suffix: str = "_mitigated",
+) -> Scenario:
+    """Same plant with module-level and O&M mitigations.
+
+    * ``pid``: PID-resistant module technology (qualified with IEC TS 62804-1),
+      represented by the assumed reduction factor ``mu_pid``.
+    * ``salt_mist``: salt-mist-hardened module (qualified with IEC 61701),
+      represented by the assumed reduction factor ``mu_salt`` on corrosion.
+    * ``glass_glass``: low-permeability glass-glass package, represented by an
+      assumed reduction of encapsulant moisture (``moisture_factor``).
+    * ``cleaning_interval_days``: a shorter manual-cleaning interval.
+    """
+
+    deg, soil, econ = scenario.degradation, scenario.soiling, scenario.economics
+    capex, opex = econ.capex_per_wp, econ.opex_per_kwp_yr
+    parts = []
+    if pid:
+        deg = replace(deg, pid_mitigation=mu_pid)
+        capex += COST_PID
+        parts.append("PID-resistant")
+    if salt_mist:
+        deg = replace(deg, salt_mist_mitigation=mu_salt)
+        capex += COST_SALT_MIST
+        parts.append("salt-mist-hardened")
+    if glass_glass:
+        deg = replace(deg, encapsulant_moisture_factor=moisture_factor)
+        capex += COST_GLASS_GLASS
+        parts.append("glass-glass")
+    if cleaning_interval_days is not None:
+        soil = replace(soil, cleaning_interval_days=cleaning_interval_days)
+        opex += COST_EXTRA_CLEANING * max(0.0, 15.0 / cleaning_interval_days - 1.0)
+        parts.append(f"{cleaning_interval_days}-day cleaning")
     return replace(
         scenario,
-        key=scenario.key + "_mitigated",
-        label=scenario.label + " + PID/salt-mist resistant modules",
+        key=scenario.key + suffix,
+        label=scenario.label + " + " + ", ".join(parts),
         degradation=deg,
-        economics=econ,
+        soiling=soil,
+        economics=replace(econ, capex_per_wp=capex, opex_per_kwp_yr=opex),
     )

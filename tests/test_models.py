@@ -134,3 +134,46 @@ def test_cli_writes_outputs(tmp_path):
     assert (tmp_path / "REPORT.md").exists()
     assert (tmp_path / "summary.csv").exists()
     assert len(list((tmp_path / "figures").glob("*.png"))) == 9
+
+
+def test_mitigation_levers_are_separate(weather):
+    saline = default_scenarios()[2]
+    pid_only = with_mitigation(saline, pid=True, salt_mist=False)
+    salt_only = with_mitigation(saline, pid=False, salt_mist=True)
+    base = run_scenario(weather, saline).kpis
+    kp, ks = run_scenario(weather, pid_only).kpis, run_scenario(weather, salt_only).kpis
+    assert kp["deg_pid_pct_yr"] < base["deg_pid_pct_yr"] and kp["deg_corrosion_pct_yr"] == base["deg_corrosion_pct_yr"]
+    assert ks["deg_corrosion_pct_yr"] < base["deg_corrosion_pct_yr"] and ks["deg_pid_pct_yr"] == base["deg_pid_pct_yr"]
+
+
+def test_uncertainty_baseline_matches_deterministic(weather):
+    from fpv_analysis import uncertainty
+
+    out = uncertainty.evaluate(weather, {})
+    for s in default_scenarios():
+        assert out[f"{s.key}:lifetime_energy_mwh"] == pytest.approx(run_scenario(weather, s).kpis["lifetime_energy_mwh"])
+
+
+def test_monte_carlo_is_reproducible(weather):
+    from fpv_analysis import uncertainty
+
+    a = uncertainty.monte_carlo(weather, n=3, seed=7)
+    b = uncertainty.monte_carlo(weather, n=3, seed=7)
+    pd.testing.assert_frame_equal(a, b)
+
+
+def test_weather_generator_reproduces_normals():
+    from fpv_analysis import studies
+
+    chk = studies.weather_check(range(1, 6)).set_index("variable")
+    assert abs(chk.loc["temp_mean", "mbe"]) < 0.5
+    assert abs(chk.loc["rh_mean", "mbe"]) < 0.5
+    assert abs(chk.loc["wind_mean", "mbe"]) < 0.1
+
+
+def test_humidity_threshold_exists(weather):
+    from fpv_analysis import studies
+
+    hum = studies.humidity_sweep(weather)
+    thr = studies.thresholds(studies.chloride_sweep(weather), studies.salt_sweep(weather), hum)
+    assert 0.5 < thr["dtd_star"] < 6.0
