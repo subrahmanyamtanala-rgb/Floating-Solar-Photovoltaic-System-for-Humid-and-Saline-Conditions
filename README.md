@@ -1,5 +1,7 @@
 # Performance Analysis of Floating Solar PV Systems for Humid and Saline Conditions
 
+[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.23949684.svg)](https://doi.org/10.5281/zenodo.23949684)
+
 An open, reproducible simulation framework that compares three 1 MWp plants in a hot, humid, coastal climate
 (default site: Visakhapatnam, Andhra Pradesh, India):
 
@@ -180,6 +182,7 @@ absolute values.
 
 ## Citation
 
+The v1.0.0 release is archived on Zenodo: [doi:10.5281/zenodo.23949684](https://doi.org/10.5281/zenodo.23949684).
 If you use this software, please cite it via [`CITATION.cff`](CITATION.cff) (GitHub shows a "Cite this repository"
 button). Releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
 

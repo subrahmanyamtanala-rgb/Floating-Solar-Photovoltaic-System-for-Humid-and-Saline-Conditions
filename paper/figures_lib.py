@@ -66,10 +66,9 @@ def ieee(out: Path) -> Target:
 
 
 def elsevier(out: Path) -> Target:
-    # Elsevier single-column artwork width (90 mm) and a 137 mm wide figure, which fits the
-    # elsarticle preprint text block (137.6 mm) at scale 1 and is close to the 140 mm
-    # 1.5-column artwork size.
-    return Target("elsevier", out, 90 * MM, 137 * MM)
+    # Elsevier single-column artwork width (90 mm) and a 126 mm wide figure, which fits the
+    # elsarticle preprint 11 pt text block (360 pt = 126.5 mm) at scale 1.
+    return Target("elsevier", out, 90 * MM, 126 * MM)
 
 
 def style():
@@ -346,7 +345,7 @@ def fig_uncertainty(t, mc, rc):
     ax.axvline(0, color=INK_2, linewidth=0.6)
     ax.set_xlabel("Spearman correlation (saline $-$ land)")
     ax.grid(axis="y", visible=False)
-    ax.legend(loc="lower right")
+    ax.legend(loc="upper left")  # the top rows have no negative bars
     panel(ax, "b")
     save(fig, t, "uncertainty.pdf")
 

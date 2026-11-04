@@ -39,13 +39,13 @@ MANUSCRIPTS = {
         "tex": ROOT / "paper" / "main.tex",
         "pdf": ROOT / "paper" / "main.pdf",
         "dirs": [ROOT / "paper" / "figures"],
-        "widths": {"\\columnwidth": 252.0, "\\textwidth": 516.0},  # IEEEtran journal, pt
+        "log": ROOT / "paper" / "main.log"
     },
     "Elsevier SIMPAT (paper_simpat/)": {
         "tex": ROOT / "paper_simpat" / "main.tex",
         "pdf": ROOT / "paper_simpat" / "main.pdf",
         "dirs": [ROOT / "paper_simpat" / "figures", ROOT / "paper" / "figures"],
-        "widths": {"\\columnwidth": 390.0, "\\textwidth": 390.0},  # elsarticle preprint, pt
+        "log": ROOT / "paper_simpat" / "main.log"
     },
 }
 MM = 72.0 / 25.4
@@ -151,6 +151,11 @@ def main() -> int:
     failures = 0
     for name, cfg in MANUSCRIPTS.items():
         tex = cfg["tex"].read_text()
+        # Text-block widths as LaTeX reported them in the compiled manuscript (see \\typeout LAYOUT).
+        m = re.search(r"LAYOUT textwidth=([\d.]+)pt columnwidth=([\d.]+)pt", cfg["log"].read_text(errors="ignore"))
+        if not m:
+            raise SystemExit(f"{cfg['log']}: no LAYOUT line; compile the manuscript first")
+        cfg["widths"] = {"\\textwidth": float(m.group(1)), "\\columnwidth": float(m.group(2))}
         lines += [f"## {name}", "",
                   "| Figure | Size (mm) | Scale | Min text (pt) | Min script (pt) | Min line (pt) | Raster | Fonts | Result |",
                   "|---|---|---|---|---|---|---|---|---|"]

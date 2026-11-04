@@ -44,6 +44,7 @@
 \journal{Simulation Modelling Practice and Theory}
 
 \begin{document}
+\typeout{LAYOUT textwidth=\the\textwidth\space columnwidth=\the\columnwidth}
 
 \begin{frontmatter}
 
@@ -369,7 +370,12 @@ More frequent cleaning & O\&M practice & Cleaning interval & 7 days (vs.\ 15) \\
 \end{table}
 
 \subsection{Lifetime energy and economics}
-Year-$y$ energy is $E_y = E_1(1-R/100)^{y-1}$ over $N=25$ years. This assumes a constant effective annual rate derived
+Year-$y$ energy over a life of $N=25$ years is
+\begin{equation}
+E_y = E_1\,(1-R/100)^{\,y-1}.
+\label{eq:lifetime}
+\end{equation}
+This assumes a constant effective annual rate derived
 from the simulated year's stress distribution. Consequently, the lifetime estimates are equivalent constant-rate
 projections, not predictions of the exact annual degradation trajectory. The levelized cost of energy is
 \begin{equation}
@@ -796,7 +802,7 @@ Output & Median & 95\% interval & $P(>0)$ (\%) \\
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=137mm]{uncertainty.pdf}
+\includegraphics[width=126mm]{uncertainty.pdf}
 \caption{Parameter uncertainty (\NMC{} samples). (a) 25-year energy relative to land PV (median and 95\% interval).
 (b) Spearman rank correlations with the saline minus land difference.}
 \label{fig:unc}
@@ -841,7 +847,7 @@ uncertainty.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=137mm]{sobol.pdf}
+\includegraphics[width=126mm]{sobol.pdf}
 \caption{First-order and total-order Sobol indices (bootstrap 95\% confidence intervals) of the 25-year energy
 difference relative to land PV, for the eight most influential parameters: (a) freshwater FPV, (b) saline FPV.}
 \label{fig:sobol}
@@ -963,7 +969,8 @@ sectors.
 The simulation code (\texttt{fpv\_analysis}), its unit tests, all input parameters and Monte Carlo ranges in
 machine-readable form, the random seeds, the pinned package versions and every generated table are openly available at
 \url{https://github.com/subrahmanyamtanala-rgb/floating-solar-photovoltaic-system-for-humid-and-saline-conditions}. The
-command \texttt{./reproduce.sh} regenerates every number, table and figure of this paper.
+release used for this paper (v1.0.0) is archived on Zenodo with DOI
+\href{https://doi.org/10.5281/zenodo.23949684}{10.5281/zenodo.23949684}~\cite{tanala2026fpv}. The command \texttt{./reproduce.sh} regenerates every number, table and figure of this paper.
 
 \section*{Declaration of generative AI and AI-assisted technologies in the manuscript preparation process}
 During the preparation of this work the author used Claude (Anthropic) in order to develop the simulation code, run the

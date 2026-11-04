@@ -1,5 +1,16 @@
 # Changelog
 
+## [Unreleased]
+
+- The v1.0.0 release is archived on Zenodo with DOI
+  [10.5281/zenodo.23949684](https://doi.org/10.5281/zenodo.23949684). The DOI is cited in both manuscripts,
+  `CITATION.cff` and the README badge.
+- SIMPAT manuscript:
+  - wide figures re-rendered at 126 mm to fit the 11 pt text block (360 pt);
+  - the lifetime formula moved to a displayed equation to remove an overfull line.
+- `tools/check_figures.py` now reads the text-block widths from the compiled manuscripts' logs instead of hard-coding
+  them.
+
 ## [1.0.0] - 2026-11-04
 
 First public release.

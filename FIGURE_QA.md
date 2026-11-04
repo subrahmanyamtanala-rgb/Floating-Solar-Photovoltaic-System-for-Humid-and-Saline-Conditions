@@ -31,9 +31,9 @@ Compiled manuscript `paper/main.pdf`: 46 fonts, all embedded, no Type 3.
 | `paper_simpat/figures/lifetime.pdf` | 90 x 58 | 1.00 | 7.0 | - | 0.50 | vector | embedded | PASS |
 | `paper_simpat/figures/thresholds.pdf` | 90 x 58 | 1.00 | 7.0 | 5.6 | 0.50 | vector | embedded | PASS |
 | `paper_simpat/figures/ensemble.pdf` | 90 x 56 | 1.00 | 7.0 | - | 0.50 | vector | embedded | PASS |
-| `paper_simpat/figures/uncertainty.pdf` | 137 x 69 | 1.00 | 7.0 | - | 0.30 | vector | embedded | PASS |
+| `paper_simpat/figures/uncertainty.pdf` | 126 x 69 | 1.00 | 7.0 | - | 0.30 | vector | embedded | PASS |
 | `paper_simpat/figures/convergence.pdf` | 90 x 61 | 1.00 | 7.0 | - | 0.50 | vector | embedded | PASS |
-| `paper_simpat/figures/sobol.pdf` | 137 x 74 | 1.00 | 7.0 | - | 0.30 | vector | embedded | PASS |
+| `paper_simpat/figures/sobol.pdf` | 126 x 74 | 1.00 | 7.0 | - | 0.30 | vector | embedded | PASS |
 
 Compiled manuscript `paper_simpat/main.pdf`: 50 fonts, all embedded, no Type 3.
 

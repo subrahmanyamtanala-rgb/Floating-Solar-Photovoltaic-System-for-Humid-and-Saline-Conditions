@@ -48,5 +48,7 @@ follow common Elsevier practice and **must be confirmed** against the current Gu
 - [ ] Review the generative-AI declaration. It must describe the actual use, and the author is responsible for all
       content. Check that the journal accepts the extent of AI assistance described.
 - [ ] Complete volume, pages and DOI for references that list only author, title, venue and year.
-- [ ] Make the GitHub repository public, or archive it on Zenodo for a DOI, before submission.
+- [x] Archive the code on Zenodo: v1.0.0 has DOI [10.5281/zenodo.23949684](https://doi.org/10.5281/zenodo.23949684). It is cited in the data-availability
+      statement.
+- [ ] Make the GitHub repository public before submission, so that the GitHub link in the paper also resolves.
 - [ ] Prepare suggested reviewers if the submission system asks for them (none are proposed here).
