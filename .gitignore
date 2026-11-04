@@ -19,3 +19,4 @@ paper_simpat/*.blg
 paper_simpat/*.fls
 paper_simpat/*.fdb_latexmk
 paper_simpat/*.spl
+submission/

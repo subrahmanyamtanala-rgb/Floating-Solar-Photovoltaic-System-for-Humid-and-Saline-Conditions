@@ -17,4 +17,5 @@ latexmk -pdf -interaction=nonstopmode main.tex
 latexmk -pdf -interaction=nonstopmode cover_letter.tex
 cd ..
 python3 tools/check_figures.py >/dev/null && echo "Figure audit: all figures pass (see FIGURE_QA.md)"
+python3 tools/make_simpat_bundle.py       # SIMPAT submission bundle -> submission/SIMPAT_submission_bundle.zip
 echo "Done: paper_simpat/main.pdf, paper/main.pdf, paper/response_to_reviewers_r3.pdf, results/REPORT.md"

@@ -9,7 +9,9 @@
 | `make_simpat_assets.py` | Journal-specific analyses: pvlib code-to-code verification, Sobol indices, runtime |
 | `generated/`, `figures/` | Outputs of `make_simpat_assets.py`; the shared numbers and figures come from `../paper/` |
 
-Rebuild: `./reproduce.sh` from the repository root.
+Rebuild: `./reproduce.sh` from the repository root. The ready-to-upload bundle (manuscript, cover letter, highlights,
+declaration, numbered figure files, self-contained LaTeX source and an upload map) is built by
+`python tools/make_simpat_bundle.py` into `submission/SIMPAT_submission_bundle.zip`.
 
 ## What changed compared with the IEEE version (`../paper/`)
 

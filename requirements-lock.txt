@@ -20,3 +20,4 @@ requests==2.34.2
 SALib==1.6.0
 scipy==1.18.1
 pymupdf==2.1
+python-docx==1.2.0
