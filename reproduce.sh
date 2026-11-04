@@ -15,4 +15,6 @@ latexmk -pdf -interaction=nonstopmode response_to_reviewers_r3.tex   # earlier l
 cd ../paper_simpat
 latexmk -pdf -interaction=nonstopmode main.tex
 latexmk -pdf -interaction=nonstopmode cover_letter.tex
+cd ..
+python3 tools/check_figures.py >/dev/null && echo "Figure audit: all figures pass (see FIGURE_QA.md)"
 echo "Done: paper_simpat/main.pdf, paper/main.pdf, paper/response_to_reviewers_r3.pdf, results/REPORT.md"

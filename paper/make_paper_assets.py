@@ -12,13 +12,11 @@ result: re-running this script after a model change updates the paper.
 from __future__ import annotations
 
 import sys
-from dataclasses import replace
 from pathlib import Path
 
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
@@ -26,14 +24,12 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from fpv_analysis import default_scenarios, run_scenario, synthetic_weather, with_mitigation  # noqa: E402
-from fpv_analysis.plots import GRID, INK, INK_2, NEUTRAL, SEQ_BLUE, SERIES, MONTHS  # noqa: E402
 from fpv_analysis.sensitivity import humidity_salinity_grid  # noqa: E402
 from fpv_analysis import studies, uncertainty  # noqa: E402
+import figures_lib  # noqa: E402
 
 FIG = ROOT / "paper" / "figures"
 GEN = ROOT / "paper" / "generated"
-COL = 3.5  # IEEE single-column width, inches
-DCOL = 7.16  # IEEE double-column width, inches
 N_SEEDS = 20
 N_MC = 1000
 N_MC_CONV = 5000
@@ -44,213 +40,9 @@ MC_SEED = 2024
 NAMES = {"land": "Land PV", "fpv_fresh": "FPV freshwater", "fpv_saline": "FPV saline"}
 
 
-def style():
-    plt.rcParams.update(
-        {
-            "font.family": "serif",
-            "font.serif": ["STIXGeneral", "Times New Roman", "DejaVu Serif"],
-            "mathtext.fontset": "stix",
-            "font.size": 8,
-            "axes.labelsize": 8,
-            "xtick.labelsize": 7,
-            "ytick.labelsize": 7,
-            "legend.fontsize": 7,
-            "axes.edgecolor": INK_2,
-            "axes.linewidth": 0.6,
-            "axes.labelcolor": INK,
-            "xtick.color": INK,
-            "ytick.color": INK,
-            "axes.grid": True,
-            "axes.axisbelow": True,
-            "grid.color": GRID,
-            "grid.linewidth": 0.5,
-            "axes.spines.top": False,
-            "axes.spines.right": False,
-            "legend.frameon": False,
-            "lines.linewidth": 1.4,
-            "figure.facecolor": "white",
-            "savefig.facecolor": "white",
-            "pdf.fonttype": 42,
-        }
-    )
-
-
-def save(fig, name):
-    fig.savefig(FIG / name, bbox_inches="tight", pad_inches=0.02)
-    plt.close(fig)
 
 
 # --------------------------------------------------------------------------- figures
-def fig_climate(w):
-    m = pd.DataFrame(
-        {
-            "ghi": w["ghi"].resample("MS").sum() / 1000.0 / w["ghi"].resample("MS").sum().index.days_in_month,
-            "temp": w["temp_air"].resample("MS").mean(),
-            "rh": w["rh"].resample("MS").mean(),
-            "rain": w["precip"].resample("MS").sum(),
-        }
-    )
-    fig, axes = plt.subplots(2, 2, figsize=(COL, 2.6), sharex=True)
-    x = np.arange(12)
-    specs = [("ghi", "GHI (kWh/m$^2$/day)"), ("temp", "Air temperature ($^\\circ$C)"),
-             ("rh", "Relative humidity (%)"), ("rain", "Rainfall (mm)")]
-    for ax, (c, lab), tag in zip(axes.flat, specs, "abcd"):
-        if c == "rain":
-            ax.bar(x, m[c], color=SERIES[0], width=0.7)
-        else:
-            ax.plot(x, m[c], color=SERIES[0], marker="o", markersize=2.5)
-        ax.set_ylabel(lab, fontsize=7)
-        ax.set_xticks(x[::2], [MONTHS[i][0] + MONTHS[i][1:3] for i in range(0, 12, 2)])
-        ax.text(0.02, 0.97, f"({tag})", transform=ax.transAxes, va="top", fontsize=7)
-    fig.tight_layout(pad=0.3, h_pad=0.4, w_pad=0.6)
-    save(fig, "climate.pdf")
-
-
-def fig_temperature(res):
-    fig, ax = plt.subplots(figsize=(COL, 2.2))
-    for i, k in enumerate(NAMES):
-        h = res[k].hourly[res[k].hourly.index.month == 5]
-        p = h.groupby(h.index.hour)["temp_module"].mean()
-        ax.plot(p.index, p.values, color=SERIES[i], label=NAMES[k])
-    air = h.groupby(h.index.hour)["temp_air"].mean()
-    ax.plot(air.index, air.values, color=NEUTRAL, linestyle="--", linewidth=1.1, label="Ambient air (land)")
-    ax.set_xlim(0, 23)
-    ax.set_xticks(range(0, 24, 3))
-    ax.set_xlabel("Hour of day (IST)")
-    ax.set_ylabel("Module temperature ($^\\circ$C)")
-    ax.legend(ncols=2, loc="lower center", bbox_to_anchor=(0.5, 1.0))
-    save(fig, "module_temperature.pdf")
-
-
-def fig_losses(res):
-    names = list(res["land"].losses.keys())
-    short = ["IAM", "Spectral", "Soiling", "Dew", "Temperature", "DC (wiring, mismatch,\nmotion, LID)",
-             "Inverter + clipping", "Availability"]
-    fig, ax = plt.subplots(figsize=(COL, 2.9))
-    y = np.arange(len(names))
-    hgt = 0.26
-    for i, k in enumerate(NAMES):
-        ax.barh(y + (i - 1) * hgt, [res[k].losses[n] for n in names], height=hgt * 0.92, color=SERIES[i],
-                label=NAMES[k])
-    ax.set_yticks(y, short)
-    ax.invert_yaxis()
-    ax.axvline(0, color=INK_2, linewidth=0.6)
-    ax.set_xlabel("Loss (% of preceding stage; negative = gain)")
-    ax.grid(axis="y", visible=False)
-    ax.legend(loc="lower right")
-    save(fig, "losses.pdf")
-
-
-def fig_soiling(res):
-    fig, ax = plt.subplots(figsize=(COL, 1.9))
-    for i, k in enumerate(NAMES):
-        d = res[k].hourly["soiling_ratio"].resample("D").mean()
-        ax.plot(d.index, 100 * d.values, color=SERIES[i], linewidth=1.0, label=NAMES[k])
-    ax.set_ylabel("Soiling ratio (%)")
-    ax.xaxis.set_major_formatter(matplotlib.dates.DateFormatter("%b"))
-    ax.legend(ncols=3, loc="lower center", bbox_to_anchor=(0.5, 1.0))
-    save(fig, "soiling.pdf")
-
-
-def fig_monthly_pr(res):
-    fig, ax = plt.subplots(figsize=(COL, 2.0))
-    x = np.arange(12)
-    for i, k in enumerate(NAMES):
-        ax.plot(x, res[k].monthly["performance_ratio"].to_numpy(), color=SERIES[i], marker="o", markersize=2.5,
-                label=NAMES[k])
-    ax.set_xticks(x, [m[:1] for m in MONTHS])
-    ax.set_ylabel("Performance ratio")
-    ax.legend(ncols=3, loc="lower center", bbox_to_anchor=(0.5, 1.0))
-    save(fig, "monthly_pr.pdf")
-
-
-def fig_degradation(res):
-    keys = ["land", "fpv_fresh", "fpv_saline", "land_mitigated", "fpv_fresh_mitigated", "fpv_saline_mitigated"]
-    labels = ["Land", "FPV fresh", "FPV saline", "Land (M)", "FPV fresh (M)", "FPV saline (M)"]
-    mech = [("deg_base_pct_yr", "Intrinsic"), ("deg_temp_humidity_pct_yr", "Temperature–humidity"),
-            ("deg_pid_pct_yr", "PID"), ("deg_corrosion_pct_yr", "Chloride corrosion")]
-    fig, ax = plt.subplots(figsize=(COL, 2.4))
-    y = np.arange(len(keys))
-    left = np.zeros(len(keys))
-    for i, (c, n) in enumerate(mech):
-        v = np.array([res[k].kpis[c] for k in keys])
-        ax.barh(y, v, left=left, color=SERIES[i], height=0.62, label=n, edgecolor="white", linewidth=1.0)
-        left += v
-    for yi, t in zip(y, left):
-        ax.text(t + 0.02, yi, f"{t:.2f}", va="center", fontsize=7)
-    ax.set_yticks(y, labels)
-    ax.invert_yaxis()
-    ax.set_xlim(0, left.max() * 1.15)
-    ax.set_xlabel("Modelled degradation rate (%/yr)")
-    ax.grid(axis="y", visible=False)
-    ax.legend(ncols=2, loc="lower center", bbox_to_anchor=(0.45, 1.0))
-    save(fig, "degradation.pdf")
-
-
-def fig_lifetime(res):
-    fig, ax = plt.subplots(figsize=(COL, 2.1))
-    for i, k in enumerate(NAMES):
-        yrs = np.arange(1, 26)
-        ax.plot(yrs, res[k].lifetime_kwh / 1e3, color=SERIES[i], label=NAMES[k])
-        ax.plot(yrs, res[k + "_mitigated"].lifetime_kwh / 1e3, color=SERIES[i], linestyle=":",
-                linewidth=1.1)
-    ax.plot([], [], color=NEUTRAL, linestyle=":", linewidth=1.1, label="Mitigated modules")
-    ax.set_xlabel("Year of operation")
-    ax.set_ylabel("Annual energy (MWh/MWp)")
-    ax.set_xlim(1, 25)
-    ax.legend(loc="lower left")
-    save(fig, "lifetime.pdf")
-
-
-def fig_sensitivity(grid):
-    fig, axes = plt.subplots(1, 2, figsize=(DCOL, 2.3))
-    for ax, (col, lab, fmt), tag in zip(
-        axes,
-        [("deg_total_pct_yr", "Degradation rate (%/yr)", ".2f"),
-         ("lifetime_energy_mwh", "25-year energy (MWh/MWp)", ".0f")],
-        "ab",
-    ):
-        piv = grid.pivot(index="dewpoint_offset", columns="salinity", values=col).sort_index(ascending=False)
-        cmap = SEQ_BLUE if col == "deg_total_pct_yr" else SEQ_BLUE.reversed()
-        im = ax.imshow(piv.values, cmap=cmap, aspect="auto")
-        ax.grid(False)
-        ax.set_xticks(range(piv.shape[1]), [f"{c:g}$\\times$" for c in piv.columns])
-        ax.set_yticks(range(piv.shape[0]), [f"+{i:g}" for i in piv.index])
-        ax.set_xlabel("Salt/chloride deposition (multiple of baseline)")
-        ax.set_ylabel("Dew-point rise over water (K)")
-        lo, hi = np.nanmin(piv.values), np.nanmax(piv.values)
-        for (r, c), v in np.ndenumerate(piv.values):
-            frac = (v - lo) / (hi - lo + 1e-12)
-            dark = frac > 0.45 if col == "deg_total_pct_yr" else frac < 0.55
-            ax.text(c, r, format(v, fmt), ha="center", va="center", fontsize=6.5, color="white" if dark else INK)
-        cb = fig.colorbar(im, ax=ax, shrink=0.9, pad=0.02)
-        cb.outline.set_visible(False)
-        cb.ax.tick_params(labelsize=6.5)
-        cb.set_label(lab, fontsize=7)
-        ax.set_title(f"({tag})", loc="left", fontsize=8)
-    fig.tight_layout(pad=0.3, w_pad=1.5)
-    save(fig, "sensitivity.pdf")
-
-
-def fig_ensemble(ens):
-    fig, axes = plt.subplots(1, 2, figsize=(COL, 1.9))
-    for ax, (col, lab) in zip(axes, [("specific_yield_kwh_kwp", "Year-1 yield vs land (%)"),
-                                     ("lifetime_energy_mwh", "25-year energy vs land (%)")]):
-        piv = ens.pivot(index="seed", columns="scenario", values=col)
-        for i, k in enumerate(["fpv_fresh", "fpv_saline"]):
-            d = 100 * (piv[k] / piv["land"] - 1)
-            ax.boxplot(d, positions=[i], widths=0.5, patch_artist=True, showfliers=True,
-                       boxprops=dict(facecolor=SERIES[i + 1], edgecolor=INK_2, linewidth=0.6),
-                       medianprops=dict(color=INK, linewidth=0.9), whiskerprops=dict(linewidth=0.6),
-                       capprops=dict(linewidth=0.6), flierprops=dict(markersize=2))
-        ax.axhline(0, color=INK_2, linewidth=0.6)
-        ax.set_xticks([0, 1], ["FPV\nfresh", "FPV\nsaline"])
-        ax.set_ylabel(lab, fontsize=7)
-        ax.grid(axis="x", visible=False)
-    fig.tight_layout(pad=0.3, w_pad=0.8)
-    save(fig, "ensemble.pdf")
-
-
 # --------------------------------------------------------------------------- numbers
 def _macro_name(s: str) -> str:
     out = "".join(ch for ch in s.title() if ch.isalpha())
@@ -354,67 +146,6 @@ def write_numbers(res, grid, ens, weather):
 
 
 # --------------------------------------------------------------------------- review additions
-def fig_uncertainty(mc, rc):
-    fig, axes = plt.subplots(1, 2, figsize=(DCOL, 2.3), gridspec_kw={"width_ratios": [1, 1.25]})
-    ax = axes[0]
-    cols = [("fpv_fresh:d_lifetime_energy_mwh_pct", "FPV fresh", SERIES[1]),
-            ("fpv_saline:d_lifetime_energy_mwh_pct", "FPV saline", SERIES[2]),
-            ("fpv_saline_mitigated:d_lifetime_energy_mwh_pct", "FPV saline (M)", SERIES[3])]
-    data = [mc[c] for c, _, _ in cols]
-    parts = ax.violinplot(data, positions=range(3), showextrema=False, widths=0.8)
-    for body, (_, _, col) in zip(parts["bodies"], cols):
-        body.set_facecolor(col)
-        body.set_edgecolor(INK_2)
-        body.set_linewidth(0.5)
-        body.set_alpha(0.85)
-    for i, d in enumerate(data):
-        lo, med, hi = np.percentile(d, [2.5, 50, 97.5])
-        ax.vlines(i, lo, hi, color=INK, linewidth=0.8)
-        ax.plot(i, med, "o", color="white", markeredgecolor=INK, markersize=3.5)
-    ax.axhline(0, color=INK_2, linewidth=0.6)
-    ax.set_xticks(range(3), [n for _, n, _ in cols])
-    ax.set_ylabel("25-year energy vs land PV (%)")
-    ax.grid(axis="x", visible=False)
-    ax.set_title("(a)", loc="left", fontsize=8)
-
-    ax = axes[1]
-    top = rc.head(10)[::-1]
-    labels = [uncertainty.PARAM_BY_NAME[n].label for n in top.index]
-    colors = [SERIES[0] if v > 0 else SERIES[1] for v in top.values]
-    ax.barh(range(len(top)), top.values, color=colors, height=0.6)
-    ax.set_yticks(range(len(top)), labels, fontsize=6.5)
-    ax.axvline(0, color=INK_2, linewidth=0.6)
-    ax.set_xlabel("Spearman rank correlation with saline−land difference")
-    ax.grid(axis="y", visible=False)
-    ax.set_title("(b)", loc="left", fontsize=8)
-    fig.tight_layout(pad=0.3, w_pad=1.2)
-    save(fig, "uncertainty.pdf")
-
-
-def fig_thresholds(salt, hum):
-    fig, axes = plt.subplots(1, 2, figsize=(COL, 1.9))
-    ax = axes[0]
-    x = salt["salt_rate"] * 1000
-    ax.plot(x, 100 * (salt["specific_yield_kwh_kwp"] / salt.attrs["land_yield"] - 1), color=SERIES[0],
-            marker="o", markersize=2.5, label="Year-1 yield")
-    ax.plot(x, 100 * (salt["lifetime_energy_mwh"] / salt.attrs["land_lifetime"] - 1), color=SERIES[1],
-            marker="s", markersize=2.5, label="25-year energy")
-    ax.axhline(0, color=INK_2, linewidth=0.6)
-    ax.set_xlabel("Salt deposition (mg/m$^2$/day)", fontsize=7)
-    ax.set_ylabel("FPV saline vs land (%)", fontsize=7)
-    ax.legend(loc="lower left", fontsize=6)
-    ax.set_title("(a)", loc="left", fontsize=8)
-    ax = axes[1]
-    ax.plot(hum["dewpoint_offset"], 100 * (hum["lifetime_energy_mwh"] / hum.attrs["land_lifetime"] - 1),
-            color=SERIES[1], marker="s", markersize=2.5)
-    ax.axhline(0, color=INK_2, linewidth=0.6)
-    ax.set_xlabel("Dew-point rise $\\Delta T_d$ (K)", fontsize=7)
-    ax.set_ylabel("FPV fresh 25-yr energy vs land (%)", fontsize=7)
-    ax.set_title("(b)", loc="left", fontsize=8)
-    fig.tight_layout(pad=0.3, w_pad=0.8)
-    save(fig, "thresholds.pdf")
-
-
 def _fmt(v, nd=2):
     return f"{v:,.{nd}f}".replace(",", "{,}").replace("-", "$-$")
 
@@ -551,28 +282,6 @@ def write_review_assets(weather, mc, rc, oat, salt, cl, hum, thr, dew, mit, be, 
     (GEN / "numbers_review.tex").write_text("\n".join(lines) + "\n", encoding="utf-8")
 
 
-def fig_convergence(conv):
-    fig, ax = plt.subplots(figsize=(COL, 2.0))
-    for i, (col, name) in enumerate([("fpv_fresh:d_lifetime_energy_mwh_pct", "FPV fresh"),
-                                     ("fpv_saline:d_lifetime_energy_mwh_pct", "FPV saline")]):
-        d = conv[conv.output == col]
-        c = SERIES[i + 1]
-        ax.errorbar(d["n"], d["median"], yerr=1.96 * d["se_median"], color=c, marker="o", markersize=3,
-                    capsize=2, linewidth=1.2, label=f"{name} median")
-        ax.plot(d["n"], d["p2.5"], color=c, linestyle="--", linewidth=0.9)
-        ax.plot(d["n"], d["p97.5"], color=c, linestyle="--", linewidth=0.9)
-    ax.plot([], [], color=NEUTRAL, linestyle="--", linewidth=0.9, label="2.5/97.5 percentiles")
-    ax.axhline(0, color=INK_2, linewidth=0.6)
-    ax.axvline(N_MC, color=NEUTRAL, linewidth=0.6, linestyle=":")
-    ax.set_xscale("log")
-    ax.minorticks_off()
-    ax.set_xticks([250, 500, 1000, 2000, 5000], ["250", "500", "1000", "2000", "5000"])
-    ax.set_xlabel("Number of Monte Carlo samples")
-    ax.set_ylabel("25-yr energy vs land (%)")
-    ax.legend(ncols=3, loc="lower center", bbox_to_anchor=(0.5, 1.0), fontsize=6)
-    save(fig, "convergence.pdf")
-
-
 def write_convergence(conv):
     lines = ["% Auto-generated: Monte Carlo convergence"]
     names = {"fpv_fresh:d_lifetime_energy_mwh_pct": "$\\Delta E_{25}$, fresh",
@@ -615,8 +324,6 @@ def write_parameters_json():
 def main():
     FIG.mkdir(parents=True, exist_ok=True)
     GEN.mkdir(parents=True, exist_ok=True)
-    style()
-
     weather = synthetic_weather(seed=42)
     base = default_scenarios()
     scen = base + [with_mitigation(s) for s in base]
@@ -633,15 +340,6 @@ def main():
     ens = pd.DataFrame(rows)
     ens.to_csv(GEN / "ensemble.csv", index=False, float_format="%.4f")
 
-    fig_climate(weather)
-    fig_temperature(res)
-    fig_losses(res)
-    fig_soiling(res)
-    fig_monthly_pr(res)
-    fig_degradation(res)
-    fig_lifetime(res)
-    fig_sensitivity(grid)
-    fig_ensemble(ens)
     write_numbers(res, grid, ens, weather)
 
     # ---- peer-review additions
@@ -651,7 +349,6 @@ def main():
     mc.to_csv(GEN / "monte_carlo.csv", index=False, float_format="%.5g")
     conv = uncertainty.convergence(mc_all, CONV_COLS)
     conv.to_csv(GEN / "convergence.csv", index=False, float_format="%.5g")
-    fig_convergence(conv)
     write_convergence(conv)
     rc = uncertainty.rank_correlation(mc, "fpv_saline:d_lifetime_energy_mwh_pct")
     oat = uncertainty.one_at_a_time(weather, "fpv_saline:d_lifetime_energy_mwh_pct")
@@ -664,11 +361,13 @@ def main():
     for name, df in (("oat", oat), ("salt_sweep", salt), ("chloride_sweep", cl), ("humidity_sweep", hum),
                      ("dew_sensitivity", dew), ("mitigation", mit), ("weather_check", wchk)):
         df.to_csv(GEN / f"{name}.csv", index=False, float_format="%.5g")
-    fig_uncertainty(mc, rc)
-    fig_thresholds(salt, hum)
     fin = studies.finance_sensitivity(weather)
     fin.to_csv(GEN / "finance_sensitivity.csv", index=False, float_format="%.5g")
     write_review_assets(weather, mc, rc, oat, salt, cl, hum, thr, dew, mit, be, wchk, fin)
+    data = {"weather": weather, "res": res, "grid": grid, "ens": ens, "mc": mc, "rc": rc, "salt": salt,
+            "hum": hum, "conv": conv}
+    figures_lib.render_all(figures_lib.ieee(FIG), data, N_MC)
+    figures_lib.render_all(figures_lib.elsevier(ROOT / "paper_simpat" / "figures"), data, N_MC)
     write_parameters_json()
     print("assets written to", FIG, "and", GEN)
 

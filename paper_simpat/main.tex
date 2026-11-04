@@ -5,6 +5,7 @@
 \documentclass[preprint,11pt]{elsarticle}
 
 \usepackage[T1]{fontenc}
+\usepackage{lmodern}
 \usepackage{amsmath,amssymb}
 \usepackage{graphicx}
 \usepackage{booktabs}
@@ -22,7 +23,7 @@
 \linenumbers
 
 \sisetup{range-phrase=--,range-units=single}
-\graphicspath{{../paper/figures/}{figures/}}
+\graphicspath{{figures/}}
 \input{../paper/generated/numbers.tex}
 \input{../paper/generated/numbers_review.tex}
 \input{../paper/generated/table_mc.tex}
@@ -533,7 +534,7 @@ brackish water. The baseline values are scenario assumptions.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{climate.pdf}
+\includegraphics[width=90mm]{climate.pdf}
 \caption{Monthly climate of the baseline synthetic year: (a) daily GHI, (b) air temperature, (c) relative humidity and
 (d) rainfall.}
 \label{fig:climate}
@@ -616,7 +617,7 @@ Varying the assumed dew optical loss over 0--6\% changes the yield differences b
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{module_temperature.pdf}
+\includegraphics[width=90mm]{module_temperature.pdf}
 \caption{Mean module temperature by hour of day in May (baseline parameters).}
 \label{fig:temp}
 \end{figure}
@@ -679,7 +680,7 @@ freshwater plant delivers $+\GainLifeF$\% and the baseline saline plant $\GainLi
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{degradation.pdf}
+\includegraphics[width=90mm]{degradation.pdf}
 \caption{Modelled module degradation rate by mechanism (baseline). (M): mitigated modules with the assumed factors of
 Table~\ref{tab:mitstd}.}
 \label{fig:deg}
@@ -711,7 +712,7 @@ LCOE (INR/kWh) & \LCOEL & \LCOEF & \LCOES & \LCOELM & \LCOEFM & \LCOESM \\
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{lifetime.pdf}
+\includegraphics[width=90mm]{lifetime.pdf}
 \caption{Annual energy over 25 years (baseline). Dotted lines: mitigated modules.}
 \label{fig:life}
 \end{figure}
@@ -729,7 +730,7 @@ lifetime energy. Only when a lower-permeability glass--glass package is added do
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{thresholds.pdf}
+\includegraphics[width=90mm]{thresholds.pdf}
 \caption{Break-even thresholds relative to land PV. (a) Saline FPV versus salt deposition (chloride at baseline).
 (b) Freshwater FPV 25-year energy versus dew-point rise over water.}
 \label{fig:thr}
@@ -771,7 +772,7 @@ the plausible parameter space. Between \NMC{} and \NMCConv{} samples, no median 
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{ensemble.pdf}
+\includegraphics[width=90mm]{ensemble.pdf}
 \caption{Weather variability only: FPV year-1 yield and 25-year energy relative to land PV over \NSeeds{} synthetic
 years.}
 \label{fig:ens}
@@ -795,7 +796,7 @@ Output & Median & 95\% interval & $P(>0)$ (\%) \\
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{uncertainty.pdf}
+\includegraphics[width=137mm]{uncertainty.pdf}
 \caption{Parameter uncertainty (\NMC{} samples). (a) 25-year energy relative to land PV (median and 95\% interval).
 (b) Spearman rank correlations with the saline minus land difference.}
 \label{fig:unc}
@@ -821,7 +822,7 @@ Output & \multicolumn{2}{c}{Median} & \multicolumn{2}{c}{95\% interval} \\
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=0.62\textwidth]{convergence.pdf}
+\includegraphics[width=90mm]{convergence.pdf}
 \caption{Convergence of the Monte Carlo median ($\pm1.96$ bootstrap SE) and 95\% bounds on nested subsets of one
 \NMCConv-sample run. The dotted line marks the \NMC{} samples used.}
 \label{fig:conv}
@@ -840,7 +841,7 @@ uncertainty.
 
 \begin{figure}[!t]
 \centering
-\includegraphics[width=\textwidth]{sobol.pdf}
+\includegraphics[width=137mm]{sobol.pdf}
 \caption{First-order and total-order Sobol indices (bootstrap 95\% confidence intervals) of the 25-year energy
 difference relative to land PV, for the eight most influential parameters: (a) freshwater FPV, (b) saline FPV.}
 \label{fig:sobol}

@@ -4,3 +4,4 @@ matplotlib>=3.7
 pytest>=7.0
 pvlib>=0.11   # code-to-code verification (paper_simpat)
 SALib>=1.4    # Sobol indices (paper_simpat)
+pymupdf>=1.24  # figure audit (tools/check_figures.py)

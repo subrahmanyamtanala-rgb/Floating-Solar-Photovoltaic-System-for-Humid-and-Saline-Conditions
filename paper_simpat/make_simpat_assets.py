@@ -17,7 +17,6 @@ from pathlib import Path
 import matplotlib
 
 matplotlib.use("Agg")
-import matplotlib.pyplot as plt  # noqa: E402
 import numpy as np  # noqa: E402
 import pandas as pd  # noqa: E402
 
@@ -29,7 +28,8 @@ from fpv_analysis import default_scenarios, run_scenario, solar, synthetic_weath
 from fpv_analysis.config import Site, ThermalParams  # noqa: E402
 from fpv_analysis.electrical import pvwatts_dc, pvwatts_inverter  # noqa: E402
 from fpv_analysis.thermal import faiman  # noqa: E402
-import make_paper_assets as mpa  # noqa: E402  (shared figure style and palette)
+import make_paper_assets as mpa  # noqa: E402
+import figures_lib  # noqa: E402
 
 GEN = ROOT / "paper_simpat" / "generated"
 FIG = ROOT / "paper_simpat" / "figures"
@@ -150,25 +150,6 @@ def sobol(weather, outputs):
     return tables, len(X)
 
 
-def fig_sobol(tables, names):
-    mpa.style()
-    fig, axes = plt.subplots(1, 2, figsize=(mpa.DCOL, 2.5), sharex=True)
-    for ax, (col, title), tag in zip(axes, names, "ab"):
-        t = tables[col].head(8)[::-1]
-        y = np.arange(len(t))
-        ax.barh(y + 0.18, t["ST"], height=0.34, xerr=t["ST_conf"], color=mpa.SERIES[0], label="Total-order $S_T$",
-                error_kw=dict(lw=0.6, capsize=1.5))
-        ax.barh(y - 0.18, t["S1"].clip(lower=0), height=0.34, xerr=t["S1_conf"], color=mpa.SERIES[1],
-                label="First-order $S_1$", error_kw=dict(lw=0.6, capsize=1.5))
-        ax.set_yticks(y, [uncertainty.PARAM_BY_NAME[n].label.split(" (")[0] for n in t["param"]], fontsize=6.5)
-        ax.set_xlabel("Sobol index")
-        ax.grid(axis="y", visible=False)
-        ax.set_title(f"({tag}) {title}", loc="left", fontsize=8)
-    axes[0].legend(loc="lower right", fontsize=6.5)
-    fig.tight_layout(pad=0.3, w_pad=1.0)
-    fig.savefig(FIG / "sobol.pdf", bbox_inches="tight", pad_inches=0.02)
-    plt.close(fig)
-
 
 # --------------------------------------------------------------------------- cost
 def runtime(weather):
@@ -234,7 +215,8 @@ def main():
         (GEN / "sobol_wall.txt").write_text(f"{sob_wall:.1f}")
     for col, t in tables.items():
         t.to_csv(GEN / f"sobol_{col.split(':')[0]}.csv", index=False, float_format="%.4g")
-    fig_sobol(tables, [(outputs[0], "FPV fresh $-$ land, 25-yr energy"), (outputs[1], "FPV saline $-$ land, 25-yr energy")])
+    figures_lib.style()
+    figures_lib.fig_sobol(figures_lib.elsevier(FIG), tables, [(outputs[0], "FPV fresh $-$ land"), (outputs[1], "FPV saline $-$ land")])
     m("SobolN", f"{SOBOL_N}")
     m("SobolRuns", f"{nruns:,}".replace(",", "{,}"))
     m("SobolEvals", f"{4 * nruns:,}".replace(",", "{,}"))
