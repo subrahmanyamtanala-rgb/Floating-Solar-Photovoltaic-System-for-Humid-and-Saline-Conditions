@@ -11,3 +11,11 @@ paper/*.blg
 paper/*.fls
 paper/*.fdb_latexmk
 paper/*.synctex.gz
+paper_simpat/*.aux
+paper_simpat/*.log
+paper_simpat/*.out
+paper_simpat/*.bbl
+paper_simpat/*.blg
+paper_simpat/*.fls
+paper_simpat/*.fdb_latexmk
+paper_simpat/*.spl

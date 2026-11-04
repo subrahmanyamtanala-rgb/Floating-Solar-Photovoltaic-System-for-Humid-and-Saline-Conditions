@@ -1,0 +1,7 @@
+Highlights
+
+- Coupled hourly simulation links FPV cooling, humidity, salt soiling, PID, corrosion
+- Sub-models agree with pvlib to 3e-12; Monte Carlo statistics converge at 1,000 runs
+- Freshwater FPV lifetime gain is conditional: positive in 75% of parameter samples
+- Saline FPV shows a lifetime energy penalty across most of the parameter space
+- Sobol indices rank float heat loss, land dust and salt deposition as key drivers

@@ -186,3 +186,22 @@ def test_convergence_uses_nested_prefixes(weather):
     conv = uncertainty.convergence(mc, ["fpv_saline:d_lifetime_energy_mwh_pct"], sizes=(4, 8), n_boot=20)
     assert list(conv["n"]) == [4, 8]
     assert conv.loc[conv.n == 8, "median"].iloc[0] == pytest.approx(mc["fpv_saline:d_lifetime_energy_mwh_pct"].median())
+
+
+def test_submodels_match_pvlib_reference(weather):
+    pvlib = pytest.importorskip("pvlib")
+    from fpv_analysis.config import ThermalParams
+
+    t = weather.index[4000:4200] + pd.Timedelta(minutes=30)
+    sun = solar.solar_position(t, 17.69, 83.22, 5.5)
+    z, a, e0 = sun["zenith"].to_numpy(), sun["azimuth"].to_numpy(), sun["dni_extra"].to_numpy()
+    ghi = weather["ghi"].to_numpy()[4000:4200]
+    dni, dhi = solar.erbs(ghi, z, e0)
+    poa = solar.poa_hay_davies(ghi, dni, dhi, e0, z, a, 12.0, 180.0, 0.07)
+    np.testing.assert_allclose(poa["poa_sky"], pvlib.irradiance.haydavies(12.0, 180.0, dhi, dni, e0, z, a), atol=1e-9)
+    g = (poa["poa_beam"] + poa["poa_sky"] + poa["poa_ground"]).to_numpy()
+    tm = faiman(g, 30.0, 3.0, ThermalParams(u0=35.0, u1=8.0, night_sky_loss=0.0))
+    np.testing.assert_allclose(tm, pvlib.temperature.faiman(g, 30.0, 3.0, u0=35.0, u1=8.0), atol=1e-9)
+    ref = pvlib.solarposition.get_solarposition(t.tz_localize("Asia/Kolkata"), 17.69, 83.22)
+    up = z < 85
+    assert np.max(np.abs(z[up] - ref["zenith"].to_numpy()[up])) < 0.5  # Spencer series vs. SPA

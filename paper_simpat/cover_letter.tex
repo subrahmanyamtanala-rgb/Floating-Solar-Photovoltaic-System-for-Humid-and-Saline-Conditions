@@ -1,0 +1,68 @@
+\documentclass[11pt]{article}
+\usepackage[T1]{fontenc}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage[hidelinks]{hyperref}
+\input{../paper/generated/numbers.tex}
+\input{../paper/generated/numbers_review.tex}
+\input{../paper/generated/convergence.tex}
+\input{generated/numbers_simpat.tex}
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{6pt}
+\begin{document}
+
+Subrahmanyam Tanala\\
+Department of Electrical and Electronics Engineering\\
+Anil Neerukonda Institute of Technology and Sciences (ANITS)\\
+Visakhapatnam 531162, Andhra Pradesh, India\\
+subrahmanyam.eee@anits.edu.in
+
+\today
+
+The Editor-in-Chief\\
+\emph{Simulation Modelling Practice and Theory}
+
+Dear Editor,
+
+I submit the manuscript ``Verified coupled simulation and uncertainty analysis of floating photovoltaic lifetime
+performance in humid and saline environments'' for consideration as a research article in \emph{Simulation Modelling
+Practice and Theory}.
+
+Floating photovoltaic plants are usually credited with higher yield because water cools the modules. In hot, humid and
+saline environments, the same water body also accelerates soiling and module degradation. Deciding between floating and
+land-based PV is therefore a simulation problem with three characteristic difficulties. The mechanisms are coupled
+through a shared microclimate, they act on time scales from hours to decades, and several governing parameters are
+unmeasured at a candidate site.
+
+The manuscript contributes to simulation practice in the following ways:
+\begin{itemize}
+\item \textbf{Coupled multi-time-scale model.} A single microclimate drives thermal, optical, soiling and four
+degradation mechanisms in one model, which resolves trade-offs that sub-models fed with independent inputs would miss.
+\item \textbf{Verification and validation.} The V\&V assessment follows Sargent's framework. All established sub-models
+are verified code-to-code against the pvlib reference library and agree to within $\VerExactMax$. Every model component
+is classified by its evidential basis, the weather generator is checked for consistency with its input climatology, and
+a field-validation protocol is derived from the sensitivity results.
+\item \textbf{Designed uncertainty experiments.} Weather variability and parameter uncertainty (\NParams{} parameters)
+are separated. A Monte Carlo analysis is checked for convergence up to \NMCConv{} samples (shifts $\le$\ConvMaxShift{}
+percentage point), and a Sobol variance decomposition shows near-additive behavior with few influential parameters.
+\item \textbf{Methodological finding.} Weather variability alone suggests a precise freshwater advantage of
+$\pm0.1$ percentage point. Parameter uncertainty shows that this advantage is conditional: it is positive in
+\MCLifePosF\% of samples. The saline penalty, in contrast, is robust (median \MCLifeMedS\%).
+\item \textbf{Reproducibility.} The open-source implementation, unit tests, parameters, seeds and a single reproduction
+script regenerate every number, table and figure.
+\end{itemize}
+
+The results are presented explicitly as model-based scenario predictions; operational validation against field data
+remains future work, for which a measurement protocol is proposed.
+
+This manuscript has not been published and is not under consideration for publication elsewhere. As stated in the
+manuscript, generative AI (Claude, Anthropic) was used to develop the simulation code, run the experiments, and draft and
+revise the text. The author reviewed and edited all content and takes full responsibility for it. There are no competing
+interests to declare.
+
+Thank you for considering this submission.
+
+Sincerely,
+
+Subrahmanyam Tanala
+
+\end{document}

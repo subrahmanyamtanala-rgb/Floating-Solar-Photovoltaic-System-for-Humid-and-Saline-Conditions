@@ -27,6 +27,11 @@ after three rounds of peer review; the point-by-point replies are in
 [`paper/response_to_reviewers_r3.pdf`](paper/response_to_reviewers_r3.pdf).
 See [`paper/README.md`](paper/README.md) to rebuild them.
 
+A version reframed for *Simulation Modelling Practice and Theory* (Elsevier) is in
+[`paper_simpat/main.pdf`](paper_simpat/main.pdf). It adds code-to-code verification against pvlib, Sobol indices and a
+verification-and-validation section, and comes with a cover letter, highlights and a submission checklist
+([`paper_simpat/README.md`](paper_simpat/README.md)).
+
 ## Headline results (synthetic Visakhapatnam year, seed 42)
 
 | | Land PV | FPV freshwater | FPV saline |
@@ -64,7 +69,7 @@ modules are model assumptions; certification alone does not establish them.
 pip install -r requirements.txt
 python -m fpv_analysis                  # synthetic weather -> results/
 python -m fpv_analysis --weather my_site.csv --out results_my_site
-python -m pytest -q                     # 23 tests
+python -m pytest -q                     # 24 tests
 ./reproduce.sh                          # everything, including the paper (about 3 minutes)
 ```
 
