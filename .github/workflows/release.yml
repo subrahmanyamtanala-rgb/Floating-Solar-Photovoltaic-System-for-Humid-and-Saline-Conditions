@@ -4,6 +4,12 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Version tag to create and release (e.g. v1.0.0)"
+        required: true
+        default: "v1.0.0"
 
 permissions:
   contents: write
@@ -38,8 +44,14 @@ jobs:
       - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-          TAG: ${{ github.ref_name }}
+          TAG: ${{ github.event_name == 'workflow_dispatch' && inputs.tag || github.ref_name }}
         run: |
           notes=".github/release/notes-${TAG}.md"
           if [ -f "$notes" ]; then notes_arg=(--notes-file "$notes"); else notes_arg=(--generate-notes); fi
-          gh release create "$TAG" dist/* --title "fpv_analysis ${TAG}" "${notes_arg[@]}" --verify-tag
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            # Manual run: GitHub creates the tag on the commit this workflow runs on.
+            target_arg=(--target "$GITHUB_SHA")
+          else
+            target_arg=(--verify-tag)
+          fi
+          gh release create "$TAG" dist/* --title "fpv_analysis ${TAG}" "${notes_arg[@]}" "${target_arg[@]}"
