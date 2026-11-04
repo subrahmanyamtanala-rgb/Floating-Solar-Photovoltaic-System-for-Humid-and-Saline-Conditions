@@ -177,3 +177,12 @@ absolute values.
 * IEC 61701:2020. Photovoltaic modules - Salt mist corrosion testing.
 * IEC TS 62804-1:2025. Photovoltaic modules - Test methods for the detection of potential-induced degradation - Part 1: Crystalline silicon.
 * Dobos, A. P. (2014). PVWatts Version 5 Manual. NREL/TP-6A20-62641.
+
+## Citation
+
+If you use this software, please cite it via [`CITATION.cff`](CITATION.cff) (GitHub shows a "Cite this repository"
+button). Releases are listed in [`CHANGELOG.md`](CHANGELOG.md).
+
+## License
+
+Released under the [MIT License](LICENSE).

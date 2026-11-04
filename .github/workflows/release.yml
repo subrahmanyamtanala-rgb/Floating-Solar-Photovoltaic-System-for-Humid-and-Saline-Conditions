@@ -1,0 +1,45 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run tests
+        run: python -m pytest -q
+
+      - name: Collect release assets
+        run: |
+          mkdir dist
+          cp paper/main.pdf dist/manuscript-ieee.pdf
+          cp paper_simpat/main.pdf dist/manuscript-simpat.pdf
+          cp paper_simpat/cover_letter.pdf dist/cover-letter-simpat.pdf
+          cp paper/response_to_reviewers_r1.pdf dist/response-to-reviewers-r1.pdf
+          cp paper/response_to_reviewers_r2.pdf dist/response-to-reviewers-r2.pdf
+          cp paper/response_to_reviewers_r3.pdf dist/response-to-reviewers-r3.pdf
+          cp FIGURE_QA.md dist/FIGURE_QA.md
+
+      - name: Create GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          notes=".github/release/notes-${TAG}.md"
+          if [ -f "$notes" ]; then notes_arg=(--notes-file "$notes"); else notes_arg=(--generate-notes); fi
+          gh release create "$TAG" dist/* --title "fpv_analysis ${TAG}" "${notes_arg[@]}" --verify-tag

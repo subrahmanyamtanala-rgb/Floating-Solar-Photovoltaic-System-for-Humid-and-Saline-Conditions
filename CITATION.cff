@@ -1,0 +1,30 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite it as below."
+title: "fpv_analysis: coupled simulation of floating photovoltaic lifetime performance in humid and saline conditions"
+type: software
+version: 1.0.0
+date-released: 2026-11-04
+license: MIT
+repository-code: "https://github.com/subrahmanyamtanala-rgb/Floating-Solar-Photovoltaic-System-for-Humid-and-Saline-Conditions"
+authors:
+  - family-names: Tanala
+    given-names: Subrahmanyam
+    affiliation: "Department of Electrical and Electronics Engineering, Anil Neerukonda Institute of Technology and Sciences (ANITS), Visakhapatnam, India"
+    email: subrahmanyam.eee@anits.edu.in
+keywords:
+  - floating photovoltaics
+  - PV degradation
+  - humidity
+  - salinity
+  - simulation
+  - uncertainty quantification
+  - Sobol sensitivity analysis
+abstract: >-
+  Open-source hourly simulation framework for floating photovoltaic (FPV)
+  systems in hot, humid and saline environments. One over-water microclimate
+  drives module temperature, dew, dust and sea-salt soiling, and four module
+  degradation mechanisms (intrinsic, Peck temperature-humidity, salt-assisted
+  potential-induced degradation, chloride corrosion), feeding 25-year energy
+  and levelized cost. Includes code-to-code verification against pvlib, Monte
+  Carlo and Sobol uncertainty analysis, and scripts that reproduce every
+  number, table and figure of the accompanying manuscripts.
